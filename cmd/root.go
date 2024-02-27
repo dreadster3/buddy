@@ -5,10 +5,9 @@ import (
 )
 
 var buddyCmd = &cobra.Command{
-	Use:   "buddy",
-	Short: "buddy is a CLI tool to help you automate your development workflow",
-	// Get version from buddy.json
-	Version: "0.0.1-beta02",
+	Use:     "buddy",
+	Short:   "buddy is a CLI tool to help you automate your development workflow",
+	Version: "0.0.1-beta01",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
