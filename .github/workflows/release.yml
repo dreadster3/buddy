@@ -41,7 +41,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_name: Release ${{ github.ref }}
-          tag: v0.0.1b1
+          tag: ${{ github.ref }}
           file: dist/*
           file_glob: true
           overwrite: true
