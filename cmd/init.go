@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 
@@ -37,7 +38,6 @@ var initCmd = &cobra.Command{
 
 		workingDir, err := os.Getwd()
 		if err != nil {
-			cmd.PrintErrln(err)
 			return err
 		}
 
@@ -51,24 +51,21 @@ var initCmd = &cobra.Command{
 
 		file, err := os.Create("buddy.json")
 		if err != nil {
-			cmd.PrintErrln(err)
 			return err
 		}
 		defer file.Close()
 
 		json, err := buddyConfig.ToJson()
 		if err != nil {
-			cmd.PrintErrln(err)
 			return err
 		}
 
 		_, err = file.WriteString(string(json))
 		if err != nil {
-			cmd.PrintErrln(err)
 			return err
 		}
 
-		cmd.Println("buddy.json created")
+		fmt.Println("buddy.json created")
 
 		return nil
 	},

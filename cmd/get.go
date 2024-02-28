@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -17,13 +18,12 @@ var getCmd = &cobra.Command{
 	Short: "Get any field from the buddy config file",
 	Long:  `Get any field from the buddy config file`,
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		configKey := args[0]
 
 		buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 
 		configKey = strings.Title(strings.ToLower(configKey))
@@ -32,10 +32,11 @@ var getCmd = &cobra.Command{
 		value := reflect.Indirect(r).FieldByName(configKey)
 
 		if !value.IsValid() {
-			cmd.PrintErrf("Field %s not found", configKey)
-			return
+			return fmt.Errorf("Field %s not found", configKey)
 		}
 
-		cmd.Println(value.String())
+		fmt.Print(value.String())
+
+		return nil
 	},
 }

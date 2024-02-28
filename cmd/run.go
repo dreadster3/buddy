@@ -29,7 +29,7 @@ var runCmd = &cobra.Command{
 			}
 
 			for commandName := range buddyConfig.Scripts {
-				cmd.Println(commandName, "->", buddyConfig.Scripts[commandName])
+				fmt.Println(commandName, "->", buddyConfig.Scripts[commandName])
 			}
 
 			return nil
