@@ -31,6 +31,8 @@ jobs:
 
       - name: Generate build files
         uses: thatisuday/go-cross-build@v1
+        env:
+          GOROOT: ""
         with:
           platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
           package: ""
