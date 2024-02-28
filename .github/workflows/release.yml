@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - v*
+    branches:
+      - fix/*
 
 jobs:
   build:
@@ -18,14 +20,14 @@ jobs:
           platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
           package: "."
           name: "buddy"
-          compress: true
+          compress: "true"
           dest: "dist"
-      - name: Publish Binaries
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: Release ${{ github.ref }}
-          tag: ${{ github.ref }}
-          file: dist/*
-          file_glob: true
-          overwrite: true
+      # - name: Publish Binaries
+      #   uses: svenstaro/upload-release-action@v2
+      #   with:
+      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+      #     release_name: Release ${{ github.ref }}
+      #     tag: ${{ github.ref }}
+      #     file: dist/*
+      #     file_glob: true
+      #     overwrite: true
