@@ -39,7 +39,6 @@ jobs:
       - name: Publish Binaries
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_name: Release ${{ github.ref }}
           tag: ${{ github.ref }}
           file: dist/*
