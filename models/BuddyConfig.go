@@ -14,6 +14,16 @@ type BuddyConfig struct {
 	Scripts     map[string]string `json:"scripts"`
 }
 
+func NewBuddyConfig(name string, version string, description string, author string, scripts map[string]string) *BuddyConfig {
+	return &BuddyConfig{
+		Name:        name,
+		Version:     version,
+		Description: description,
+		Author:      author,
+		Scripts:     scripts,
+	}
+}
+
 func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
 	readFile, err := os.Open(filePath)
 	if err != nil {
@@ -32,4 +42,13 @@ func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
 	}
 
 	return &buddyConfig, nil
+}
+
+func (buddyConfig *BuddyConfig) ToJson() ([]byte, error) {
+	json, err := json.MarshalIndent(buddyConfig, "", "    ")
+	if err != nil {
+		return nil, err
+	}
+
+	return json, nil
 }

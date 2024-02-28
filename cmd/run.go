@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/dreadster3/buddy/models"
@@ -17,54 +17,45 @@ func init() {
 }
 
 var runCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run [flags] [command]",
 	Short: "Run a predefined command",
 	Long:  `Run a predefined command`,
 	Args:  cobra.MaximumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if listCommands || len(args) == 0 {
 			buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
 			if err != nil {
-				cmd.PrintErr(err)
-				return
+				return err
 			}
 
 			for commandName := range buddyConfig.Scripts {
 				cmd.Println(commandName, "->", buddyConfig.Scripts[commandName])
 			}
 
-			return
+			return nil
 		}
 
 		commandName := args[0]
 
 		buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 
 		command, ok := buddyConfig.Scripts[commandName]
 		if !ok {
-			cmd.PrintErrf("Command %s not found", commandName)
-			return
+			return fmt.Errorf("Command %s not found", commandName)
 		}
 
-		var stdOutBuf, stdErrBuf bytes.Buffer
 		execCommand := exec.Command("sh", "-c", command)
-		execCommand.Stdout = &stdOutBuf
-		execCommand.Stderr = &stdErrBuf
+		execCommand.Stdout = os.Stdout
+		execCommand.Stderr = os.Stderr
 
 		err = execCommand.Run()
 		if err != nil {
-			cmd.PrintErrf("Error: %s", stdErrBuf.String())
-			return
+			return err
 		}
 
-		output := stdOutBuf.Bytes()
-
-		if len(output) > 0 {
-			fmt.Println(string(output))
-		}
+		return nil
 	},
 }
