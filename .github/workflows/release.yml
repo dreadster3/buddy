@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - v*
+    branches:
+      - fix/*
 
 env:
   GOVERSION: stable
@@ -39,8 +41,9 @@ jobs:
       - name: Publish Binaries
         uses: svenstaro/upload-release-action@v2
         with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_name: Release ${{ github.ref }}
-          tag: ${{ github.ref }}
+          tag: v0.0.1b1
           file: dist/*
           file_glob: true
           overwrite: true
