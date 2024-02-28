@@ -31,9 +31,7 @@ jobs:
         run: echo "version=$(./buddy get version)" >> "$GITHUB_OUTPUT"
 
       - name: Generate build files
-        uses: thatisuday/go-cross-build@v1
-        # env:
-        #   GOROOT: ""
+        uses: thatisuday/go-cross-build@v1.0.2
         with:
           platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
           package: ""
