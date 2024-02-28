@@ -8,7 +8,7 @@ on:
       - fix/*
 
 env:
-  GOVERSION: 1.21
+  GOVERSION: latest
 
 jobs:
   release:
@@ -30,7 +30,7 @@ jobs:
         run: echo "version=$(./buddy get version)" >> "$GITHUB_OUTPUT"
 
       - name: Generate build files
-        uses: thatisuday/go-cross-build@v1
+        uses: thatisuday/go-cross-build@v1.0.2
         env:
           GOROOT: ""
         with:
