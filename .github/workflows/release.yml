@@ -7,6 +7,9 @@ on:
     branches:
       - fix/*
 
+env:
+  GOVERSION: 1.21
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,12 +17,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Go ${{ env.GOVERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVERSION }}
+
+      - name: Build Module
+        run: go build -o buddy
+
+      - name: Get Version
+        id: version
+        run: echo "version=$(./buddy get version)" >> "$GITHUB_OUTPUT"
+
       - name: Generate build files
-        uses: thatisuday/go-cross-build@v1.0.2
+        uses: thatisuday/go-cross-build@v1
         with:
           platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
           package: ""
-          name: "buddy"
+          name: "buddy-${{ steps.version.outputs.version }}"
           compress: true
           dest: "dist"
       # - name: Publish Binaries
