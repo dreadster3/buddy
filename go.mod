@@ -1,6 +1,6 @@
 module github.com/dreadster3/buddy
 
-go 1.21
+go 1.20
 
 require github.com/spf13/cobra v1.8.0
 
