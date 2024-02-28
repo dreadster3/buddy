@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate build files
+        uses: thatisuday/go-cross-build@v1
+        with:
+          platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
+          package: "."
+          name: "buddy"
+          compress: true
+          dest: "dist"
+      - name: Publish Binaries
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_name: Release ${{ github.ref }}
+          tag: ${{ github.ref }}
+          file: dist/*
+          file_glob: true
+          overwrite: true
