@@ -6,7 +6,10 @@ on:
       - v*
 
 env:
-  GOVERSION: stable
+  PYTHONVERSION: 3.11
+
+permissions:
+  contents: write
 
 jobs:
   release:
@@ -15,32 +18,76 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Go ${{ env.GOVERSION }}
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GOVERSION }}
-          check-latest: true
-
-      - name: Build Module
-        run: go build -o buddy
-
-      - name: Get Version
-        id: version
-        run: echo "version=$(./buddy get version)" >> "$GITHUB_OUTPUT"
-
+      # Build section
       - name: Generate build files
         uses: thatisuday/go-cross-build@v1.0.2
         with:
           platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
           package: ""
-          name: "buddy-${{ steps.version.outputs.version }}"
+          name: "buddy-${{ github.ref_name }}"
           compress: true
           dest: "dist"
-      - name: Publish Binaries
+
+      # Documentation Section
+      - name: Setup Python ${{ env.PYTHONVERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHONVERSION }}
+
+      - name: Install towncrier
+        run: pip install towncrier
+
+      - name: Check for full release
+        id: check
+        run: |
+          version=${{ github.ref_name }}
+          if [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "full_release=true" >> $GITHUB_OUTPUT
+          elif [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.+$ ]]; then
+            echo "full_release=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Draft Release Notes
+        id: draft
+        shell: bash
+        run: |
+          release_notes=$(towncrier build --version="${{github.ref_name}}" --draft)
+          release_notes="${release_notes//'%'/'%25'}"                               # Multiline escape sequences for %
+          release_notes="${release_notes//$'\n'/'%0A'}"                             # Multiline escape sequences for '\n'
+          release_notes="${release_notes//$'\r'/'%0D'}"                             # Multiline escape sequences for '\r'
+          echo "release_notes=$release_notes" >> $GITHUB_OUTPUT
+
+      - name: Run towncrier
+        if: ${{ steps.check.outputs.full_release == 'true' }}
+        run: towncrier build --version=${{github.ref_name}} --yes
+
+      - name: Run towncrier
+        if: ${{ steps.check.outputs.full_release == 'false' }}
+        run: towncrier build --version=${{github.ref_name}} --keep
+
+      - name: Commit Changelog Changes
+        run: |
+          git config --global user.email "noreply@github.com"
+          git config --global user.name "GitHub Action"
+
+          # Commit changes
+          git commit -am "Update changelog for ${{github.ref_name}}"
+
+          # Push changes to main
+          git push
+
+          # Force tag update
+          git tag ${{github.ref_name}} -f -m "${{github.ref_name}}"
+
+          # Push tag
+          git push origin ${{github.ref_name}} --force
+
+      - name: Update Release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: Release ${{ github.ref }}
+          prerelease: ${{ steps.check.outputs.full_release == 'false' }}
+          release_name: Release ${{ github.ref_name }}
+          body: ${{ steps.draft.outputs.release_notes }}
           tag: ${{ github.ref }}
           file: dist/*
           file_glob: true
