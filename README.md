@@ -59,6 +59,8 @@ You can run these scripts using the `buddy run` command.
 
 ```bash
 buddy run <script-name>
+
+buddy <script-name> # Shorthand notation (cannot be used if it overlaps with existing `buddy` commands)
 ```
 
 Use the `buddy run --list` command to list all the scripts in the `buddy.json` file.
