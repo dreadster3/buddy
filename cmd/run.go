@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/dreadster3/buddy/models"
 	"github.com/spf13/cobra"
@@ -42,20 +40,6 @@ var runCmd = &cobra.Command{
 			return err
 		}
 
-		command, ok := buddyConfig.Scripts[commandName]
-		if !ok {
-			return fmt.Errorf("Command %s not found", commandName)
-		}
-
-		execCommand := exec.Command("sh", "-c", command)
-		execCommand.Stdout = os.Stdout
-		execCommand.Stderr = os.Stderr
-
-		err = execCommand.Run()
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return buddyConfig.RunScript(commandName)
 	},
 }
