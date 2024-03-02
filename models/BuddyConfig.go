@@ -2,8 +2,10 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 )
 
 type BuddyConfig struct {
@@ -42,6 +44,24 @@ func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
 	}
 
 	return &buddyConfig, nil
+}
+
+func (buddyConfig *BuddyConfig) RunScript(scriptName string) error {
+	command, ok := buddyConfig.Scripts[scriptName]
+	if !ok {
+		return fmt.Errorf("Script %s not found", scriptName)
+	}
+
+	execCommand := exec.Command("sh", "-c", command)
+	execCommand.Stdout = os.Stdout
+	execCommand.Stderr = os.Stderr
+
+	err := execCommand.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (buddyConfig *BuddyConfig) ToJson() ([]byte, error) {
