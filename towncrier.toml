@@ -1,12 +1,12 @@
-
 [tool.towncrier]
-name = "."
+name = "buddy"
 directory = ".changelog.d"
 filename = "CHANGELOG.md"
+template = ".changelog.d/template.md"
 start_string = "<!-- towncrier release notes start -->\n"
-title_format = "## [[{version}]](https://github.com/dreadster3/./tree/{version}) - {project_date}"
+title_format = "## [[{version}]](https://github.com/dreadster3/buddy/tree/{version}) - {project_date}"
 underlines = [""]
-issue_format = "[#{issue}](https://github.com/dreadster3/./pull/{issue})"
+issue_format = "[#{issue}](https://github.com/dreadster3/buddy/pull/{issue})"
 
 [[tool.towncrier.type]]
 directory = "feature"

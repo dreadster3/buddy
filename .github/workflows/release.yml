@@ -1,12 +1,11 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - v*
+  release:
+    types: [published]
 
 env:
-  PYTHONVERSION: 3.11
+  PYTHON_VERSION: 3.11
 
 permissions:
   contents: write
@@ -14,13 +13,29 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     steps:
-      - name: Checkout repository
+      # Setup Section
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
 
-      # Build section
+      - name: Get Tag Branch
+        id: tag_branch
+        run: |
+          commit=$(git rev-list -n 1 ${{ github.ref }})
+          branch=$(git for-each-ref --format='%(refname:short)' --contains $commit | head -n 1 | cut -d "/" -f 2-)
+          echo "Origin branch for tag is $branch"
+          echo "branch=$branch" >> $GITHUB_OUTPUT
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # Build Section
       - name: Generate build files
         uses: thatisuday/go-cross-build@v1.0.2
         with:
@@ -31,11 +46,6 @@ jobs:
           dest: "dist"
 
       # Documentation Section
-      - name: Setup Python ${{ env.PYTHONVERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHONVERSION }}
-
       - name: Install towncrier
         run: pip install towncrier
 
@@ -69,14 +79,18 @@ jobs:
 
       - name: Commit Changelog Changes
         run: |
+          # > ~/.gitconfig
           git config --global user.email "noreply@github.com"
           git config --global user.name "GitHub Action"
+          # git config --global url."https://oauth2:${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com"
+          # git remote set-url origin "https://oauth2:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}"
+          git checkout "${{steps.tag_branch.outputs.branch}}"
 
           # Commit changes
-          git commit -am "Update changelog for ${{github.ref_name}}"
+          git commit -m "Update changelog for ${{github.ref_name}}"
 
-          # Push changes to main
-          git push
+          # Push changes to origin branch
+          git push --force
 
           # Force tag update
           git tag ${{github.ref_name}} -f -m "${{github.ref_name}}"
@@ -87,7 +101,7 @@ jobs:
       - name: Update Release
         uses: svenstaro/upload-release-action@v2
         with:
-          prerelease: ${{ steps.check.outputs.full_release == 'false' }}
+          prerelease: ${{ steps.check.outputs.full_release == false }}
           release_name: Release ${{ github.ref_name }}
           body: ${{ steps.draft.outputs.release_notes }}
           tag: ${{ github.ref }}
