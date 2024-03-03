@@ -2,6 +2,7 @@
 name = "buddy"
 directory = ".changelog.d"
 filename = "CHANGELOG.md"
+template = ".changelog.d/template.md"
 start_string = "<!-- towncrier release notes start -->\n"
 title_format = "## [[{version}]](https://github.com/dreadster3/buddy/tree/{version}) - {project_date}"
 underlines = [""]
