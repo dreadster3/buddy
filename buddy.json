@@ -1,6 +1,6 @@
 {
 	"name": "buddy",
-	"version": "0.0.1-beta.2",
+	"version": "vx.x.x",
 	"description": "A CLI to help automate your development workflow.",
 	"author": "dreadster3",
 	"scripts": {
