@@ -58,7 +58,7 @@ You can add scripts to the `scripts` object in the `buddy.json` file.
 You can run these scripts using the `buddy run` command.
 
 ```bash
-buddy run <script-name>
+buddy run <script-name> <args>
 
 buddy <script-name> # Shorthand notation (cannot be used if it overlaps with existing `buddy` commands)
 ```
