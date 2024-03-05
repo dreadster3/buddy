@@ -1,12 +1,13 @@
 {
 	"name": "buddy",
-	"version": "0.0.1-beta.2",
+	"version": "vx.x.x",
 	"description": "A CLI to help automate your development workflow.",
 	"author": "dreadster3",
 	"scripts": {
 		"build": "go build -o ./dist/buddy",
 		"run": "./dist/buddy --version",
 		"build:run": "./dist/buddy run build && ./dist/buddy run run",
-		"install": "go install ."
+		"install": "go install .",
+		"echo": "echo"
 	}
 }
