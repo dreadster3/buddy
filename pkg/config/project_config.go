@@ -1,15 +1,15 @@
-package models
+package config
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
-	"strings"
+
+	script "github.com/dreadster3/buddy/pkg/utils"
 )
 
-type BuddyConfig struct {
+type ProjectConfig struct {
 	Name        string            `json:"name"`
 	Version     string            `json:"version"`
 	Description string            `json:"description"`
@@ -17,8 +17,8 @@ type BuddyConfig struct {
 	Scripts     map[string]string `json:"scripts"`
 }
 
-func NewBuddyConfig(name string, version string, description string, author string, scripts map[string]string) *BuddyConfig {
-	return &BuddyConfig{
+func NewProjectConfig(name string, version string, description string, author string, scripts map[string]string) *ProjectConfig {
+	return &ProjectConfig{
 		Name:        name,
 		Version:     version,
 		Description: description,
@@ -27,7 +27,7 @@ func NewBuddyConfig(name string, version string, description string, author stri
 	}
 }
 
-func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
+func ParseProjectConfigFile(filePath string) (*ProjectConfig, error) {
 	readFile, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
 		return nil, err
 	}
 
-	var buddyConfig BuddyConfig
+	var buddyConfig ProjectConfig
 	if err := json.Unmarshal(content, &buddyConfig); err != nil {
 		return nil, err
 	}
@@ -47,31 +47,22 @@ func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
 	return &buddyConfig, nil
 }
 
-func (buddyConfig *BuddyConfig) RunScript(scriptName string) error {
-	return buddyConfig.RunScriptArgs(scriptName, []string{})
+func (projectConfig *ProjectConfig) RunScript(scriptName string) error {
+	return projectConfig.RunScriptArgs(scriptName, []string{})
 }
 
-func (buddyConfig *BuddyConfig) RunScriptArgs(scriptName string, arguments []string) error {
-	command, ok := buddyConfig.Scripts[scriptName]
+func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments []string) error {
+	command, ok := projectConfig.Scripts[scriptName]
 	if !ok {
 		return fmt.Errorf("Script %s not found", scriptName)
 	}
 
-	command = fmt.Sprintf("%s %s", command, strings.Join(arguments, " "))
+	_, err := script.RunScript(command, arguments)
 
-	execCommand := exec.Command("sh", "-c", command)
-	execCommand.Stdout = os.Stdout
-	execCommand.Stderr = os.Stderr
-
-	err := execCommand.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func (buddyConfig *BuddyConfig) ToJson() ([]byte, error) {
+func (buddyConfig *ProjectConfig) ToJson() ([]byte, error) {
 	json, err := json.MarshalIndent(buddyConfig, "", "    ")
 	if err != nil {
 		return nil, err

@@ -1,9 +1,9 @@
-package cmd
+package run
 
 import (
 	"fmt"
 
-	"github.com/dreadster3/buddy/models"
+	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -14,10 +14,6 @@ type RunOptions struct {
 
 	// Flags
 	ListCommands bool
-}
-
-func init() {
-	buddyCmd.AddCommand(NewCmdRun())
 }
 
 func NewCmdRun() *cobra.Command {
@@ -33,7 +29,7 @@ func NewCmdRun() *cobra.Command {
 				return nil
 			}
 
-			buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
+			buddyConfig, err := config.ParseProjectConfigFile("buddy.json")
 			if err != nil {
 				return err
 			}
@@ -46,7 +42,7 @@ func NewCmdRun() *cobra.Command {
 		},
 		Aliases: []string{"execute"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
+			buddyConfig, err := config.ParseProjectConfigFile("buddy.json")
 			if err != nil {
 				return nil, cobra.ShellCompDirectiveError
 			}
@@ -77,7 +73,7 @@ func NewCmdRun() *cobra.Command {
 }
 
 func runExecute(opts *RunOptions) error {
-	buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
+	buddyConfig, err := config.ParseProjectConfigFile("buddy.json")
 	if err != nil {
 		return err
 	}
