@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type BuddyConfig struct {
@@ -47,10 +48,16 @@ func ParseBuddyConfigFile(filePath string) (*BuddyConfig, error) {
 }
 
 func (buddyConfig *BuddyConfig) RunScript(scriptName string) error {
+	return buddyConfig.RunScriptArgs(scriptName, []string{})
+}
+
+func (buddyConfig *BuddyConfig) RunScriptArgs(scriptName string, arguments []string) error {
 	command, ok := buddyConfig.Scripts[scriptName]
 	if !ok {
 		return fmt.Errorf("Script %s not found", scriptName)
 	}
+
+	command = fmt.Sprintf("%s %s", command, strings.Join(arguments, " "))
 
 	execCommand := exec.Command("sh", "-c", command)
 	execCommand.Stdout = os.Stdout

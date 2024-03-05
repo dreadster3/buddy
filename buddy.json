@@ -7,6 +7,7 @@
 		"build": "go build -o ./dist/buddy",
 		"run": "./dist/buddy --version",
 		"build:run": "./dist/buddy run build && ./dist/buddy run run",
-		"install": "go install ."
+		"install": "go install .",
+		"echo": "echo"
 	}
 }
