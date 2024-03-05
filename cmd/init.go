@@ -15,8 +15,9 @@ func init() {
 }
 
 var initCmd = &cobra.Command{
-	Use:   "init [flags] [directory]",
-	Short: "Initialize a new buddy file",
+	Use:                   "init [options] [directory]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Initialize a new buddy file",
 	Long: `Initialize a new buddy file.
 	If a directory is provided, buddy.json will be created in the directory.
 	If no directory is provided, buddy.json will be created in the current directory.`,
