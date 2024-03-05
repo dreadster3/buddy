@@ -9,7 +9,7 @@ var buddyCmd = &cobra.Command{
 	Use:                   "buddy [options] [command]",
 	DisableFlagsInUseLine: true,
 	Short:                 "buddy is a CLI tool to help you automate your development workflow",
-	Version:               "0.0.1-beta01",
+	Version:               "0.0.1-beta03",
 	Args:                  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		commandName := args[0]
