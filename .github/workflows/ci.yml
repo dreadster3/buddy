@@ -43,8 +43,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: buddy-dev
-          path: dist/*
+          name: buddy-${{matrix.os}}-dev
+          path: dist
           retention-days: 1
 
       # To replace build with tests when available
