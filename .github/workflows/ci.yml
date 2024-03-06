@@ -30,18 +30,18 @@ jobs:
 
       - name: Go build
         if: matrix.os == 'ubuntu-latest'
-        run: go build -o "dist/buddy-linux-${{github.ref_name}}"
+        run: go build -o "dist/buddy-linux-dev"
 
       - name: Go build
         if: matrix.os == 'macos-latest'
-        run: go build -o "dist/buddy-darwin-${{github.ref_name}}"
+        run: go build -o "dist/buddy-darwin-dev"
 
       - name: Go build for Windows
         if: matrix.os == 'windows-latest'
-        run: go build -o "dist/buddy-windows-${{github.ref_name}}.exe"
+        run: go build -o "dist/buddy-windows-dev.exe"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: my-artifact
           path: dist/
