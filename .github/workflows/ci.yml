@@ -36,15 +36,15 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: go build -o "dist/buddy-darwin-dev"
 
-      - name: Go build for Windows
+      - name: Go build
         if: matrix.os == 'windows-latest'
         run: go build -o "dist/buddy-windows-dev.exe"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my-artifact
-          path: dist/
+          name: buddy-dev
+          path: dist/*
           retention-days: 1
 
       # To replace build with tests when available
