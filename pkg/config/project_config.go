@@ -47,8 +47,39 @@ func ParseProjectConfigFile(filePath string) (*ProjectConfig, error) {
 	return &buddyConfig, nil
 }
 
+func ParseMergeProjectConfigFile(globalConfig *GlobalConfig) (*ProjectConfig, error) {
+	projectConfig, err := ParseProjectConfigFile(globalConfig.FileName)
+	if err != nil {
+		return nil, err
+	}
+
+	projectConfig.MergeGlobalConfig(globalConfig)
+
+	return projectConfig, nil
+}
+
 func (projectConfig *ProjectConfig) RunScript(scriptName string) error {
 	return projectConfig.RunScriptArgs(scriptName, []string{})
+}
+
+func (projectConfig *ProjectConfig) MergeGlobalConfig(globalConfig *GlobalConfig) {
+	authorName := projectConfig.Author
+	mergedScripts := make(map[string]string)
+
+	for scriptName, scriptCommand := range globalConfig.Scripts {
+		mergedScripts[scriptName] = scriptCommand
+	}
+
+	for scriptName, scriptCommand := range projectConfig.Scripts {
+		mergedScripts[scriptName] = scriptCommand
+	}
+
+	if authorName == "" {
+		authorName = globalConfig.Author
+	}
+
+	projectConfig.Author = authorName
+	projectConfig.Scripts = mergedScripts
 }
 
 func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments []string) error {

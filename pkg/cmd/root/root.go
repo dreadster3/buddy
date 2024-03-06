@@ -1,11 +1,25 @@
 package root
 
 import (
+	"github.com/dreadster3/buddy/pkg/cmd/get"
+	"github.com/dreadster3/buddy/pkg/cmd/initialize"
+	"github.com/dreadster3/buddy/pkg/cmd/run"
 	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
-func NewRootCmd() *cobra.Command {
+type RootOptions struct {
+	GlobalConfig *config.GlobalConfig
+
+	// Args
+	CommandName string
+}
+
+func NewRootCmd(globalConfig *config.GlobalConfig) *cobra.Command {
+	opts := &RootOptions{
+		GlobalConfig: globalConfig,
+	}
+
 	var buddyCmd = &cobra.Command{
 		Use:                   "buddy [options] [command]",
 		DisableFlagsInUseLine: true,
@@ -13,16 +27,24 @@ func NewRootCmd() *cobra.Command {
 		Version:               "dev",
 		Args:                  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			commandName := args[0]
+			opts.CommandName = args[0]
 
-			buddyConfig, err := config.ParseProjectConfigFile("buddy.json")
-			if err != nil {
-				return err
-			}
-
-			return buddyConfig.RunScript(commandName)
+			return runRoot(opts)
 		},
 	}
 
+	buddyCmd.AddCommand(initialize.NewCmdInit(opts.GlobalConfig))
+	buddyCmd.AddCommand(get.NewCmdGet(opts.GlobalConfig))
+	buddyCmd.AddCommand(run.NewCmdRun(opts.GlobalConfig))
+
 	return buddyCmd
+}
+
+func runRoot(opts *RootOptions) error {
+	projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
+	if err != nil {
+		return err
+	}
+
+	return projectConfig.RunScript(opts.CommandName)
 }

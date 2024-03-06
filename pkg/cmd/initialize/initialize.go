@@ -11,13 +11,16 @@ import (
 )
 
 type InitOptions struct {
-	directory   string
-	projectName string
+	GlobalConfig *config.GlobalConfig
+
+	Directory   string
+	ProjectName string
 }
 
-func NewCmdInit() *cobra.Command {
+func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
 	opts := &InitOptions{
-		directory: ".",
+		Directory:    ".",
+		GlobalConfig: globalConfig,
 	}
 
 	var initCmd = &cobra.Command{
@@ -37,26 +40,26 @@ func NewCmdInit() *cobra.Command {
 					return err
 				}
 
-				opts.directory = directoryName
-				opts.projectName = path.Base(directoryName)
+				opts.Directory = directoryName
+				opts.ProjectName = path.Base(directoryName)
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			buddyFilePath := path.Join(opts.directory, "buddy.json")
+			buddyFilePath := path.Join(opts.Directory, opts.GlobalConfig.FileName)
 			if _, err := os.Stat(buddyFilePath); err == nil {
 				return errors.New("buddy.json already exists")
 			}
 
-			if opts.projectName == "" {
+			if opts.ProjectName == "" {
 				workingDir, err := os.Getwd()
 				if err != nil {
 					return err
 				}
 
-				opts.directory = workingDir
-				opts.projectName = path.Base(workingDir)
+				opts.Directory = workingDir
+				opts.ProjectName = path.Base(workingDir)
 			}
 
 			return runInit(opts)
@@ -67,9 +70,9 @@ func NewCmdInit() *cobra.Command {
 }
 
 func runInit(opts *InitOptions) error {
-	projectConfig := config.NewProjectConfig(opts.projectName, "0.0.1", "A new buddy project", "Anonymous", map[string]string{})
+	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", "A new buddy project", opts.GlobalConfig.Author, map[string]string{})
 
-	err := projectConfig.WriteToFile(path.Join(opts.directory, "buddy.json"))
+	err := projectConfig.WriteToFile(path.Join(opts.Directory, opts.GlobalConfig.FileName))
 	if err != nil {
 		return err
 	}

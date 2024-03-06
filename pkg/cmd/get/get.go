@@ -12,11 +12,16 @@ import (
 )
 
 type GetOptions struct {
-	parameterName string
+	GlobalConfig *config.GlobalConfig
+
+	// Args
+	ParameterName string
 }
 
-func NewCmdGet() *cobra.Command {
-	opts := &GetOptions{}
+func NewCmdGet(globalConfig *config.GlobalConfig) *cobra.Command {
+	opts := &GetOptions{
+		GlobalConfig: globalConfig,
+	}
 
 	var getCmd = &cobra.Command{
 		Use:   "get",
@@ -24,7 +29,7 @@ func NewCmdGet() *cobra.Command {
 		Long:  `Get any field from the buddy config file`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.parameterName = args[0]
+			opts.ParameterName = args[0]
 
 			return runGet(opts)
 		},
@@ -34,14 +39,14 @@ func NewCmdGet() *cobra.Command {
 }
 
 func runGet(opts *GetOptions) error {
-	buddyConfig, err := config.ParseProjectConfigFile("buddy.json")
+	buddyConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
 	if err != nil {
 		return err
 	}
 
 	caser := cases.Title(language.English)
 
-	configKey := caser.String(strings.ToLower(opts.parameterName))
+	configKey := caser.String(strings.ToLower(opts.ParameterName))
 
 	r := reflect.ValueOf(buddyConfig)
 	value := reflect.Indirect(r).FieldByName(configKey)
