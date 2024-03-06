@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	script "github.com/dreadster3/buddy/pkg/utils"
+	"github.com/dreadster3/buddy/pkg/utils"
 )
 
 type ProjectConfig struct {
@@ -57,16 +57,11 @@ func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments [
 		return fmt.Errorf("Script %s not found", scriptName)
 	}
 
-	_, err := script.RunScript(command, arguments)
+	_, err := utils.RunScript(command, arguments)
 
 	return err
 }
 
-func (buddyConfig *ProjectConfig) ToJson() ([]byte, error) {
-	json, err := json.MarshalIndent(buddyConfig, "", "    ")
-	if err != nil {
-		return nil, err
-	}
-
-	return json, nil
+func (projectConfig *ProjectConfig) WriteToFile(filePath string) error {
+	return utils.WriteJsonToFile(filePath, projectConfig)
 }

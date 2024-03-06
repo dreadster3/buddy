@@ -10,7 +10,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type InitOptions struct {
+	directory   string
+	projectName string
+}
+
 func NewCmdInit() *cobra.Command {
+	opts := &InitOptions{
+		directory: ".",
+	}
+
 	var initCmd = &cobra.Command{
 		Use:                   "init [options] [directory]",
 		DisableFlagsInUseLine: true,
@@ -19,55 +28,53 @@ func NewCmdInit() *cobra.Command {
 	If a directory is provided, buddy.json will be created in the directory.
 	If no directory is provided, buddy.json will be created in the current directory.`,
 		Args: cobra.MaximumNArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
-				err := os.Mkdir(args[0], 0755)
-				if err != nil {
-					return
+				directoryName := args[0]
+
+				err := os.Mkdir(directoryName, 0755)
+				if err != nil && !os.IsExist(err) {
+					return err
 				}
 
-				os.Chdir(args[0])
+				opts.directory = directoryName
+				opts.projectName = path.Base(directoryName)
 			}
+
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if _, err := os.Stat("buddy.json"); err == nil {
+			buddyFilePath := path.Join(opts.directory, "buddy.json")
+			if _, err := os.Stat(buddyFilePath); err == nil {
 				return errors.New("buddy.json already exists")
 			}
 
-			workingDir, err := os.Getwd()
-			if err != nil {
-				return err
+			if opts.projectName == "" {
+				workingDir, err := os.Getwd()
+				if err != nil {
+					return err
+				}
+
+				opts.directory = workingDir
+				opts.projectName = path.Base(workingDir)
 			}
 
-			projectName := path.Base(workingDir)
-
-			if len(args) > 0 {
-				projectName = args[0]
-			}
-
-			buddyConfig := config.NewProjectConfig(projectName, "0.0.1", "A new buddy project", "Anonymous", map[string]string{})
-
-			file, err := os.Create("buddy.json")
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			json, err := buddyConfig.ToJson()
-			if err != nil {
-				return err
-			}
-
-			_, err = file.WriteString(string(json))
-			if err != nil {
-				return err
-			}
-
-			fmt.Println("buddy.json created")
-
-			return nil
+			return runInit(opts)
 		},
 	}
 
 	return initCmd
+}
+
+func runInit(opts *InitOptions) error {
+	projectConfig := config.NewProjectConfig(opts.projectName, "0.0.1", "A new buddy project", "Anonymous", map[string]string{})
+
+	err := projectConfig.WriteToFile(path.Join(opts.directory, "buddy.json"))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("buddy.json created")
+
+	return nil
 }
