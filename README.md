@@ -1,5 +1,8 @@
 # Buddy
 
+:warn: **This project is still in development and is not ready for use.**
+:warn: **And will be subject to breaking changes often.**
+
 A CLI to help automate your development workflow.
 
 ## Installation

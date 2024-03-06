@@ -1,13 +1,16 @@
-package cmd
+package run
 
 import (
 	"fmt"
 
-	"github.com/dreadster3/buddy/models"
+	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
 type RunOptions struct {
+	// Global Config
+	GlobalConfig *config.GlobalConfig
+
 	// Args
 	CommandName string
 	CommandArgs []string
@@ -16,12 +19,10 @@ type RunOptions struct {
 	ListCommands bool
 }
 
-func init() {
-	buddyCmd.AddCommand(NewCmdRun())
-}
-
-func NewCmdRun() *cobra.Command {
-	opts := &RunOptions{}
+func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
+	opts := &RunOptions{
+		GlobalConfig: globalConfig,
+	}
 
 	var runCmd = &cobra.Command{
 		Use:                   "run [options] [command] [args...]",
@@ -33,12 +34,12 @@ func NewCmdRun() *cobra.Command {
 				return nil
 			}
 
-			buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
+			projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
 			if err != nil {
 				return err
 			}
 
-			if _, ok := buddyConfig.Scripts[args[0]]; !ok {
+			if _, ok := projectConfig.Scripts[args[0]]; !ok {
 				return fmt.Errorf("Command %s not found", args[0])
 			}
 
@@ -46,14 +47,14 @@ func NewCmdRun() *cobra.Command {
 		},
 		Aliases: []string{"execute"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
+			projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
 			if err != nil {
 				return nil, cobra.ShellCompDirectiveError
 			}
 
 			var commands []string
 
-			for commandName := range buddyConfig.Scripts {
+			for commandName := range projectConfig.Scripts {
 				commands = append(commands, commandName)
 			}
 
@@ -77,18 +78,18 @@ func NewCmdRun() *cobra.Command {
 }
 
 func runExecute(opts *RunOptions) error {
-	buddyConfig, err := models.ParseBuddyConfigFile("buddy.json")
+	projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
 	if err != nil {
 		return err
 	}
 
 	if opts.ListCommands {
-		for commandName := range buddyConfig.Scripts {
-			fmt.Println(commandName, "->", buddyConfig.Scripts[commandName])
+		for commandName := range projectConfig.Scripts {
+			fmt.Println(commandName, "->", projectConfig.Scripts[commandName])
 		}
 
 		return nil
 	}
 
-	return buddyConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
+	return projectConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
 }
