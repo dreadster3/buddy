@@ -54,7 +54,7 @@ func runGet(opts *GetOptions) error {
 		return fmt.Errorf("Field %s is not a printable field", configKey)
 	}
 
-	fmt.Print(value.String())
+	fmt.Println(value.String())
 
 	return nil
 }
