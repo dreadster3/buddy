@@ -29,7 +29,19 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Go build
-        run: go build
+        if: matrix.os != 'windows-latest'
+        run: go build -o "dist/buddy-${{split(matrix.os, '-')[0]}}-${{ matrix.go }}"
+
+      - name: Go build for Windows
+        if: matrix.os == 'windows-latest'
+        run: go build -o "dist/buddy-windows-${{ matrix.go }}.exe"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: my-artifact
+          path: dist/
+          retention-days: 1
 
       # To replace build with tests when available
       # - name: Go test
