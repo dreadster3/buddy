@@ -36,14 +36,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       # Build Section
-      - name: Generate build files
-        uses: thatisuday/go-cross-build@v1.0.2
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
         with:
-          platforms: "linux/amd64, linux/ppc64le, darwin/amd64, darwin/arm64, windows/amd64"
-          package: ""
-          name: "buddy-${{ github.ref_name }}"
-          compress: true
-          dest: "dist"
+          version: latest
+          args: release --clean --skip publish
 
       # Documentation Section
       - name: Install towncrier
@@ -105,6 +102,6 @@ jobs:
           release_name: Release ${{ github.ref_name }}
           body: ${{ steps.draft.outputs.release_notes }}
           tag: ${{ github.ref }}
-          file: dist/*
+          file: dist/buddy-${{github.ref_name}}-*
           file_glob: true
           overwrite: true
