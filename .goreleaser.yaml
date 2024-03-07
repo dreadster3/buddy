@@ -23,7 +23,7 @@ archives:
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}-
-      {{- .Version }}-
+      {{- .Tag }}-
       {{- title .Os }}-
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
@@ -35,4 +35,4 @@ archives:
         format: zip
 
 checksum:
-  name_template: "{{.ProjectName}}-{{.Version}}-checksums.txt"
+  name_template: "{{.ProjectName}}-{{.Tag}}-checksums.txt"
