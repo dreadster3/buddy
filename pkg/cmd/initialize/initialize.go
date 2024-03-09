@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
@@ -12,14 +13,17 @@ import (
 type InitOptions struct {
 	GlobalConfig *config.GlobalConfig
 
-	Directory   string
+	// Args
 	ProjectName string
+
+	// Flags
+	WorkingDirectory string
 }
 
 func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
 	opts := &InitOptions{
-		Directory:    ".",
-		GlobalConfig: globalConfig,
+		WorkingDirectory: ".",
+		GlobalConfig:     globalConfig,
 	}
 
 	var initCmd = &cobra.Command{
@@ -31,47 +35,42 @@ func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
 	If no directory is provided, buddy.json will be created in the current directory.`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 1 {
-				directoryName := args[0]
-
-				err := os.Mkdir(directoryName, 0755)
-				if err != nil && !os.IsExist(err) {
-					return err
-				}
-
-				opts.Directory = directoryName
-				opts.ProjectName = path.Base(directoryName)
+			workingDirectory, err := cmd.Flags().GetString("directory")
+			if err != nil {
+				return err
 			}
 
+			opts.WorkingDirectory = workingDirectory
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			buddyFilePath := path.Join(opts.Directory, opts.GlobalConfig.FileName)
-			if _, err := os.Stat(buddyFilePath); err == nil {
+			if len(args) > 0 {
+				opts.WorkingDirectory = path.Join(opts.WorkingDirectory, args[0])
+			}
+
+			realPath, err := filepath.Abs(opts.WorkingDirectory)
+			if err != nil {
+				return err
+			}
+
+			opts.ProjectName = path.Base(realPath)
+
+			projectConfigFilePath := path.Join(opts.WorkingDirectory, opts.GlobalConfig.FileName)
+			if _, err := os.Stat(projectConfigFilePath); err == nil {
 				return fmt.Errorf("%s already exists", opts.GlobalConfig.FileName)
 			}
 
-			if opts.ProjectName == "" {
-				workingDir, err := os.Getwd()
-				if err != nil {
-					return err
-				}
-
-				opts.Directory = workingDir
-				opts.ProjectName = path.Base(workingDir)
-			}
-
-			return runInit(opts)
+			return RunInit(opts)
 		},
 	}
 
 	return initCmd
 }
 
-func runInit(opts *InitOptions) error {
+func RunInit(opts *InitOptions) error {
 	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", "A new buddy project", opts.GlobalConfig.Author, map[string]string{})
 
-	err := projectConfig.WriteToFile(path.Join(opts.Directory, opts.GlobalConfig.FileName))
+	err := projectConfig.WriteToFile(path.Join(opts.WorkingDirectory, opts.GlobalConfig.FileName))
 	if err != nil {
 		return err
 	}

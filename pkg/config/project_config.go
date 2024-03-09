@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 
 	"github.com/dreadster3/buddy/pkg/utils"
 )
@@ -94,5 +95,13 @@ func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments [
 }
 
 func (projectConfig *ProjectConfig) WriteToFile(filePath string) error {
+	// Create directory if it doesn't exist
+	directory := path.Dir(filePath)
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		if err := os.Mkdir(directory, 0755); err != nil {
+			return err
+		}
+	}
+
 	return utils.WriteJsonToFile(filePath, projectConfig)
 }

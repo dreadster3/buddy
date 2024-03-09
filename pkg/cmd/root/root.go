@@ -13,6 +13,10 @@ type RootOptions struct {
 
 	// Args
 	CommandName string
+	CommandArgs []string
+
+	// Flags
+	WorkingDirectory string
 }
 
 func NewRootCmd(version string, globalConfig *config.GlobalConfig) *cobra.Command {
@@ -20,31 +24,39 @@ func NewRootCmd(version string, globalConfig *config.GlobalConfig) *cobra.Comman
 		GlobalConfig: globalConfig,
 	}
 
-	var buddyCmd = &cobra.Command{
+	var rootCmd = &cobra.Command{
 		Use:                   "buddy [options] [command]",
 		DisableFlagsInUseLine: true,
 		Short:                 "buddy is a CLI tool to help you automate your development workflow",
 		Version:               version,
-		Args:                  cobra.ExactArgs(1),
+		Args:                  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.CommandName = args[0]
+
+			if len(args) > 1 {
+				opts.CommandArgs = args[1:]
+			}
 
 			return runRoot(opts)
 		},
 	}
 
-	buddyCmd.AddCommand(initialize.NewCmdInit(opts.GlobalConfig))
-	buddyCmd.AddCommand(get.NewCmdGet(opts.GlobalConfig))
-	buddyCmd.AddCommand(run.NewCmdRun(opts.GlobalConfig))
+	rootCmd.PersistentFlags().StringVarP(&opts.WorkingDirectory, "directory", "d", ".", "The working directory to run the command in")
 
-	return buddyCmd
+	rootCmd.AddCommand(initialize.NewCmdInit(opts.GlobalConfig))
+	rootCmd.AddCommand(get.NewCmdGet(opts.GlobalConfig))
+	rootCmd.AddCommand(run.NewCmdRun(opts.GlobalConfig))
+
+	return rootCmd
 }
 
 func runRoot(opts *RootOptions) error {
-	projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
-	if err != nil {
-		return err
+	runOpts := &run.RunOptions{
+		GlobalConfig:     opts.GlobalConfig,
+		CommandName:      opts.CommandName,
+		CommandArgs:      opts.CommandArgs,
+		WorkingDirectory: opts.WorkingDirectory,
 	}
 
-	return projectConfig.RunScript(opts.CommandName)
+	return run.RunExecute(runOpts)
 }

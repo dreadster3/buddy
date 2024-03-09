@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
@@ -9,7 +10,8 @@ import (
 
 type RunOptions struct {
 	// Global Config
-	GlobalConfig *config.GlobalConfig
+	GlobalConfig     *config.GlobalConfig
+	WorkingDirectory string
 
 	// Args
 	CommandName string
@@ -60,6 +62,15 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 
 			return commands, cobra.ShellCompDirectiveNoFileComp
 		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			workingDirectory, err := cmd.Flags().GetString("directory")
+			if err != nil {
+				return err
+			}
+
+			opts.WorkingDirectory = workingDirectory
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				opts.ListCommands = true
@@ -68,7 +79,7 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 				opts.CommandArgs = args[1:]
 			}
 
-			return runExecute(opts)
+			return RunExecute(opts)
 		},
 	}
 
@@ -77,7 +88,7 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 	return runCmd
 }
 
-func runExecute(opts *RunOptions) error {
+func RunExecute(opts *RunOptions) error {
 	projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
 	if err != nil {
 		return err
@@ -89,6 +100,11 @@ func runExecute(opts *RunOptions) error {
 		}
 
 		return nil
+	}
+
+	err = os.Chdir(opts.WorkingDirectory)
+	if err != nil {
+		return err
 	}
 
 	return projectConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
