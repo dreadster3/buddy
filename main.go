@@ -51,7 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmd := root.NewRootCmd(globalConfig)
+	cmd := root.NewRootCmd(Version, globalConfig)
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
