@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -49,7 +48,7 @@ func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			buddyFilePath := path.Join(opts.Directory, opts.GlobalConfig.FileName)
 			if _, err := os.Stat(buddyFilePath); err == nil {
-				return errors.New("buddy.json already exists")
+				return fmt.Errorf("%s already exists", opts.GlobalConfig.FileName)
 			}
 
 			if opts.ProjectName == "" {
@@ -77,7 +76,7 @@ func runInit(opts *InitOptions) error {
 		return err
 	}
 
-	fmt.Println("buddy.json created")
+	fmt.Println(opts.GlobalConfig.FileName, "created")
 
 	return nil
 }

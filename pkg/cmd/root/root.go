@@ -15,7 +15,7 @@ type RootOptions struct {
 	CommandName string
 }
 
-func NewRootCmd(globalConfig *config.GlobalConfig) *cobra.Command {
+func NewRootCmd(version string, globalConfig *config.GlobalConfig) *cobra.Command {
 	opts := &RootOptions{
 		GlobalConfig: globalConfig,
 	}
@@ -24,7 +24,7 @@ func NewRootCmd(globalConfig *config.GlobalConfig) *cobra.Command {
 		Use:                   "buddy [options] [command]",
 		DisableFlagsInUseLine: true,
 		Short:                 "buddy is a CLI tool to help you automate your development workflow",
-		Version:               "v0.0.1-beta.4",
+		Version:               version,
 		Args:                  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.CommandName = args[0]
