@@ -6,7 +6,9 @@ import (
 	"os/user"
 
 	"github.com/dreadster3/buddy/pkg/cmd/root"
+	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/dreadster3/buddy/pkg/config"
+	"github.com/dreadster3/buddy/pkg/log"
 	"github.com/spf13/viper"
 )
 
@@ -28,9 +30,11 @@ func main() {
 	viper.ReadInConfig()
 
 	if viper.ConfigFileUsed() == "" {
-		fmt.Println("No config file found, creating one at $HOME/.config/buddy")
+		configDir := os.ExpandEnv("$HOME/.config/buddy")
 
-		err := os.Mkdir(os.ExpandEnv("$HOME/.config/buddy"), 0755)
+		log.Logger.Info("No config file found, creating one", "path", configDir)
+
+		err := os.Mkdir(configDir, 0755)
 		if err != nil && !os.IsExist(err) {
 			fmt.Println("Error creating config directory:", err)
 			os.Exit(1)
@@ -38,10 +42,8 @@ func main() {
 
 		err = viper.SafeWriteConfig()
 		if err != nil {
-			if _, ok := err.(viper.ConfigFileAlreadyExistsError); !ok {
-				fmt.Println("Error writing config file:", err)
-				os.Exit(1)
-			}
+			fmt.Println("Error writing config file:", err)
+			os.Exit(1)
 		}
 	}
 
@@ -51,7 +53,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmd := root.NewRootCmd(Version, globalConfig)
+	cmd := root.NewRootCmd(settings.New(Version, globalConfig))
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

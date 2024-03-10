@@ -4,31 +4,33 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
 type RunOptions struct {
 	// Global Config
-	GlobalConfig     *config.GlobalConfig
-	WorkingDirectory string
+	Settings *settings.Settings
 
 	// Args
 	CommandName string
 	CommandArgs []string
 
 	// Flags
-	ListCommands bool
+	ListCommands     bool
+	WorkingDirectory string
 }
 
-func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
+func NewCmdRun(settings *settings.Settings) *cobra.Command {
 	opts := &RunOptions{
-		GlobalConfig: globalConfig,
+		Settings: settings,
 	}
 
 	var runCmd = &cobra.Command{
 		Use:                   "run [options] [command] [args...]",
 		DisableFlagsInUseLine: true,
+		Version:               settings.Version,
 		Short:                 "Run a predefined command",
 		Long:                  `Run a predefined command`,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -36,7 +38,7 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 				return nil
 			}
 
-			projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
+			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
 			if err != nil {
 				return err
 			}
@@ -49,7 +51,7 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 		},
 		Aliases: []string{"execute"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
+			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
 			if err != nil {
 				return nil, cobra.ShellCompDirectiveError
 			}
@@ -77,6 +79,7 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 			} else {
 				opts.CommandName = args[0]
 				opts.CommandArgs = args[1:]
+				opts.Settings.Logger = opts.Settings.Logger.With("command", opts.CommandName, "args", opts.CommandArgs)
 			}
 
 			return RunExecute(opts)
@@ -89,12 +92,16 @@ func NewCmdRun(globalConfig *config.GlobalConfig) *cobra.Command {
 }
 
 func RunExecute(opts *RunOptions) error {
-	projectConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
+	opts.Settings.Logger.Debug("Executing Command")
+
+	projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
 	if err != nil {
+		opts.Settings.Logger.Error("Error parsing project config file", "error", err)
 		return err
 	}
 
 	if opts.ListCommands {
+		opts.Settings.Logger.Info("No command provided, listing all commands")
 		for commandName := range projectConfig.Scripts {
 			fmt.Println(commandName, "->", projectConfig.Scripts[commandName])
 		}
@@ -104,6 +111,7 @@ func RunExecute(opts *RunOptions) error {
 
 	err = os.Chdir(opts.WorkingDirectory)
 	if err != nil {
+		opts.Settings.Logger.Error("Error changing directory", "error", err)
 		return err
 	}
 

@@ -6,12 +6,13 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
 type InitOptions struct {
-	GlobalConfig *config.GlobalConfig
+	Settings *settings.Settings
 
 	// Args
 	ProjectName string
@@ -20,14 +21,16 @@ type InitOptions struct {
 	WorkingDirectory string
 }
 
-func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
+func NewCmdInit(settings *settings.Settings) *cobra.Command {
 	opts := &InitOptions{
+		Settings: settings,
+
 		WorkingDirectory: ".",
-		GlobalConfig:     globalConfig,
 	}
 
 	var initCmd = &cobra.Command{
 		Use:                   "init [options] [directory]",
+		Version:               settings.Version,
 		DisableFlagsInUseLine: true,
 		Short:                 "Initialize a new buddy file",
 		Long: `Initialize a new buddy file.
@@ -55,10 +58,13 @@ func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
 
 			opts.ProjectName = path.Base(realPath)
 
-			projectConfigFilePath := path.Join(opts.WorkingDirectory, opts.GlobalConfig.FileName)
+			projectConfigFilePath := path.Join(opts.WorkingDirectory, opts.Settings.GlobalConfig.FileName)
 			if _, err := os.Stat(projectConfigFilePath); err == nil {
-				return fmt.Errorf("%s already exists", opts.GlobalConfig.FileName)
+				opts.Settings.Logger.Error("File already exists", "path", projectConfigFilePath)
+				return fmt.Errorf("%s already exists", opts.Settings.GlobalConfig.FileName)
 			}
+
+			opts.Settings.Logger = opts.Settings.Logger.With("project", opts.ProjectName, "projectName", opts.ProjectName)
 
 			return RunInit(opts)
 		},
@@ -68,14 +74,15 @@ func NewCmdInit(globalConfig *config.GlobalConfig) *cobra.Command {
 }
 
 func RunInit(opts *InitOptions) error {
-	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", "A new buddy project", opts.GlobalConfig.Author, map[string]string{})
+	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", "A new buddy project", opts.Settings.GlobalConfig.Author, map[string]string{})
 
-	err := projectConfig.WriteToFile(path.Join(opts.WorkingDirectory, opts.GlobalConfig.FileName))
+	err := projectConfig.WriteToFile(path.Join(opts.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(opts.GlobalConfig.FileName, "created")
+	opts.Settings.Logger.Info("Project initialized")
+	fmt.Println(opts.Settings.GlobalConfig.FileName, "created")
 
 	return nil
 }
