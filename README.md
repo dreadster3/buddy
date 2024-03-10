@@ -5,6 +5,10 @@
 
 A CLI to help automate your development workflow.
 
+## Requirements
+
+- Go (>= 1.21)
+
 ## Installation
 
 ```bash
