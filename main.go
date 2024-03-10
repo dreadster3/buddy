@@ -49,6 +49,7 @@ func main() {
 
 	globalConfig, err := config.GlobalConfigFromViper(viper.GetViper())
 	if err != nil {
+		log.Logger.Error("Error parsing config file", "error", err)
 		fmt.Println("Error parsing config file:", err)
 		os.Exit(1)
 	}
