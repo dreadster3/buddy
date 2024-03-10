@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
@@ -12,34 +13,38 @@ import (
 )
 
 type GetOptions struct {
-	GlobalConfig *config.GlobalConfig
+	Settings *settings.Settings
 
 	// Args
 	ParameterName string
 }
 
-func NewCmdGet(globalConfig *config.GlobalConfig) *cobra.Command {
+func NewCmdGet(settings *settings.Settings) *cobra.Command {
 	opts := &GetOptions{
-		GlobalConfig: globalConfig,
+		Settings: settings,
 	}
 
 	var getCmd = &cobra.Command{
-		Use:   "get",
-		Short: "Get any field from the buddy config file",
-		Long:  `Get any field from the buddy config file`,
-		Args:  cobra.ExactArgs(1),
+		Use:     "get",
+		Version: settings.Version,
+		Short:   "Get any field from the buddy config file",
+		Long:    `Get any field from the buddy config file`,
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ParameterName = args[0]
+			opts.Settings.Logger = opts.Settings.Logger.With("parameter", opts.ParameterName)
 
-			return runGet(opts)
+			return RunGet(opts)
 		},
 	}
 
 	return getCmd
 }
 
-func runGet(opts *GetOptions) error {
-	buddyConfig, err := config.ParseMergeProjectConfigFile(opts.GlobalConfig)
+func RunGet(opts *GetOptions) error {
+	opts.Settings.Logger.Debug("Getting field from buddy config")
+
+	projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
 	if err != nil {
 		return err
 	}
@@ -47,15 +52,18 @@ func runGet(opts *GetOptions) error {
 	caser := cases.Title(language.English)
 
 	configKey := caser.String(strings.ToLower(opts.ParameterName))
+	opts.Settings.Logger.Debug("Titlefy field name", "field", configKey)
 
-	r := reflect.ValueOf(buddyConfig)
+	r := reflect.ValueOf(projectConfig)
 	value := reflect.Indirect(r).FieldByName(configKey)
 
 	if !value.IsValid() {
+		opts.Settings.Logger.Error("Field not found", "field", configKey)
 		return fmt.Errorf("Field %s not found", configKey)
 	}
 
 	if value.Kind() != reflect.String {
+		opts.Settings.Logger.Error("Field is not a printable field", "field", configKey, "kind", value.Kind().String())
 		return fmt.Errorf("Field %s is not a printable field", configKey)
 	}
 
