@@ -1,6 +1,7 @@
 package get
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -55,15 +56,15 @@ func RunGet(opts *GetOptions) error {
 
 	if !value.IsValid() {
 		opts.Settings.Logger.Error("Field not found", "field", configKey)
-		return fmt.Errorf("Field %s not found", configKey)
+		return errors.New("Field not found")
 	}
 
 	if value.Kind() != reflect.String {
 		opts.Settings.Logger.Error("Field is not a printable field", "field", configKey, "kind", value.Kind().String())
-		return fmt.Errorf("Field %s is not a printable field", configKey)
+		return errors.New("Field is not printable")
 	}
 
-	fmt.Println(value.String())
+	fmt.Fprintln(opts.Settings.StdOut, value.String())
 
 	return nil
 }

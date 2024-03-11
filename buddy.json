@@ -9,6 +9,6 @@
 		"build:run": "./dist/buddy run build && ./dist/buddy run run",
 		"install": "go install .",
 		"install:completions": "buddy install && buddy completion zsh > $HOME/.oh-my-zsh/custom/buddy.zsh",
-		"ls": "ls -la"
+		"test": "go test ./..."
 	}
 }

@@ -30,18 +30,8 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 		Version:               settings.Version,
 		Short:                 "Run a predefined command",
 		Long:                  `Run a predefined command`,
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 || opts.ListCommands {
-				return nil
-			}
-
-			if _, ok := opts.Settings.ProjectConfig.Scripts[args[0]]; !ok {
-				return fmt.Errorf("Command %s not found", args[0])
-			}
-
-			return nil
-		},
-		Aliases: []string{"execute"},
+		Args:                  cobra.ArbitraryArgs,
+		Aliases:               []string{"execute"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			projectConfig := opts.Settings.ProjectConfig
 
@@ -77,7 +67,7 @@ func RunExecute(opts *RunOptions) error {
 	if opts.ListCommands {
 		opts.Settings.Logger.Info("No command provided, listing all commands")
 		for commandName := range opts.Settings.ProjectConfig.Scripts {
-			fmt.Println(commandName, "->", opts.Settings.ProjectConfig.Scripts[commandName])
+			fmt.Fprintln(opts.Settings.StdOut, commandName, "->", opts.Settings.ProjectConfig.Scripts[commandName])
 		}
 
 		return nil

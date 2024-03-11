@@ -82,7 +82,7 @@ func RunInit(opts *InitOptions) error {
 	}
 
 	opts.Settings.Logger.Info("Project initialized")
-	fmt.Println(opts.Settings.GlobalConfig.FileName, "created")
+	fmt.Fprintln(opts.Settings.StdOut, opts.Settings.GlobalConfig.FileName, "created")
 
 	return nil
 }
