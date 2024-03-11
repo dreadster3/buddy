@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -16,6 +17,7 @@ type InitOptions struct {
 
 	// Args
 	ProjectName string
+	Description string
 }
 
 func NewCmdInit(settings *settings.Settings) *cobra.Command {
@@ -45,10 +47,9 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 
 			opts.ProjectName = path.Base(realPath)
 
-			projectConfigFilePath := path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName)
-			if _, err := os.Stat(projectConfigFilePath); err == nil {
-				opts.Settings.Logger.Error("File already exists", "path", projectConfigFilePath)
-				return fmt.Errorf("%s already exists", opts.Settings.GlobalConfig.FileName)
+			if _, err := os.Stat(opts.Settings.GlobalConfig.FileName); err == nil {
+				opts.Settings.Logger.Error("File already exists", "file", opts.Settings.GlobalConfig.FileName)
+				return errors.New("File already exists")
 			}
 
 			opts.Settings.Logger = opts.Settings.Logger.With("projectName", opts.ProjectName)
@@ -57,14 +58,16 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 		},
 	}
 
+	initCmd.Flags().StringVar(&opts.Description, "description", "A new buddy project", "Description of the project")
+
 	return initCmd
 }
 
 func RunInit(opts *InitOptions) error {
-	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", "A new buddy project", opts.Settings.GlobalConfig.Author, map[string]string{})
+	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", opts.Description, opts.Settings.GlobalConfig.Author, map[string]string{})
 
 	opts.Settings.Logger.Debug("Creating buddy file", "projectConfig", projectConfig)
-	err := projectConfig.WriteToFile(opts.Settings.GlobalConfig.FileName)
+	err := projectConfig.WriteToFile(path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		return err
 	}

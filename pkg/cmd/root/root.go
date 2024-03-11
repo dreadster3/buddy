@@ -16,15 +16,15 @@ type RootOptions struct {
 	Settings *settings.Settings
 
 	// Args
-	CommandName string
-	CommandArgs []string
+	ScriptName string
+	ScriptArgs []string
 }
 
 func NewRootCmd(settings *settings.Settings) *cobra.Command {
 	opts := &RootOptions{
 		Settings: settings,
 
-		CommandArgs: []string{},
+		ScriptArgs: []string{},
 	}
 
 	var rootCmd = &cobra.Command{
@@ -34,22 +34,22 @@ func NewRootCmd(settings *settings.Settings) *cobra.Command {
 		Version:               settings.Version,
 		Args:                  cobra.MinimumNArgs(1),
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			subcommands := []string{}
-			commandNames := []string{}
+			subCommands := []string{}
+			scriptNames := []string{}
 
 			for _, cmd := range cmd.Root().Commands() {
-				subcommands = append(subcommands, cmd.Name())
+				subCommands = append(subCommands, cmd.Name())
 			}
 
 			if opts.Settings.ProjectConfig == nil {
-				return subcommands, cobra.ShellCompDirectiveNoFileComp
+				return subCommands, cobra.ShellCompDirectiveNoFileComp
 			}
 
-			for commandName := range opts.Settings.ProjectConfig.Scripts {
-				commandNames = append(commandNames, commandName)
+			for scriptName := range opts.Settings.ProjectConfig.Scripts {
+				scriptNames = append(scriptNames, scriptName)
 			}
 
-			return utils.SetDifference(commandNames, subcommands), cobra.ShellCompDirectiveNoFileComp
+			return utils.SetDifference(scriptNames, subCommands), cobra.ShellCompDirectiveNoFileComp
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.Settings.Logger = opts.Settings.Logger.With("workingDirectory", opts.Settings.WorkingDirectory)
@@ -61,16 +61,22 @@ func NewRootCmd(settings *settings.Settings) *cobra.Command {
 
 			opts.Settings.ProjectConfig = projectConfig
 
-			return os.Chdir(opts.Settings.WorkingDirectory)
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.CommandName = args[0]
-
-			if len(args) > 1 {
-				opts.CommandArgs = args[1:]
+			err = os.Chdir(opts.Settings.WorkingDirectory)
+			if err != nil {
+				return err
 			}
 
-			opts.Settings.Logger = opts.Settings.Logger.With("command", opts.CommandName, "args", opts.CommandArgs)
+			opts.Settings.WorkingDirectory = "."
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.ScriptName = args[0]
+
+			if len(args) > 1 {
+				opts.ScriptArgs = args[1:]
+			}
+
+			opts.Settings.Logger = opts.Settings.Logger.With("command", opts.ScriptName, "args", opts.ScriptArgs)
 
 			return RunRoot(opts)
 		},
@@ -91,8 +97,8 @@ func RunRoot(opts *RootOptions) error {
 	runOpts := &run.RunOptions{
 		Settings: opts.Settings,
 
-		CommandName: opts.CommandName,
-		CommandArgs: opts.CommandArgs,
+		ScriptName: opts.ScriptName,
+		ScriptArgs: opts.ScriptArgs,
 	}
 
 	return run.RunExecute(runOpts)

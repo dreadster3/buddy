@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -83,7 +83,7 @@ func (projectConfig *ProjectConfig) MergeGlobalConfig(globalConfig *GlobalConfig
 func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments []string) error {
 	command, ok := projectConfig.Scripts[scriptName]
 	if !ok {
-		return fmt.Errorf("Script %s not found", scriptName)
+		return errors.New("Script not found")
 	}
 
 	_, err := utils.RunScript(command, arguments)

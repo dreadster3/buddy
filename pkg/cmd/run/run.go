@@ -12,8 +12,8 @@ type RunOptions struct {
 	Settings *settings.Settings
 
 	// Args
-	CommandName string
-	CommandArgs []string
+	ScriptName string
+	ScriptArgs []string
 
 	// Flags
 	ListCommands bool
@@ -35,21 +35,22 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			projectConfig := opts.Settings.ProjectConfig
 
-			var commands []string
+			var scripts []string
 
-			for commandName := range projectConfig.Scripts {
-				commands = append(commands, commandName)
+			for scriptName := range projectConfig.Scripts {
+				scripts = append(scripts, scriptName)
 			}
 
-			return commands, cobra.ShellCompDirectiveNoFileComp
+			return scripts, cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				opts.ListCommands = true
+				opts.Settings.Logger.Info("No command provided, listing all commands")
 			} else {
-				opts.CommandName = args[0]
-				opts.CommandArgs = args[1:]
-				opts.Settings.Logger = opts.Settings.Logger.With("command", opts.CommandName, "args", opts.CommandArgs)
+				opts.ScriptName = args[0]
+				opts.ScriptArgs = args[1:]
+				opts.Settings.Logger = opts.Settings.Logger.With("command", opts.ScriptName, "args", opts.ScriptArgs)
 			}
 
 			return RunExecute(opts)
@@ -62,10 +63,9 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 }
 
 func RunExecute(opts *RunOptions) error {
-	opts.Settings.Logger.Debug("Executing Command")
+	opts.Settings.Logger.Debug("Executing Script")
 
 	if opts.ListCommands {
-		opts.Settings.Logger.Info("No command provided, listing all commands")
 		for commandName := range opts.Settings.ProjectConfig.Scripts {
 			fmt.Fprintln(opts.Settings.StdOut, commandName, "->", opts.Settings.ProjectConfig.Scripts[commandName])
 		}
@@ -73,5 +73,5 @@ func RunExecute(opts *RunOptions) error {
 		return nil
 	}
 
-	return opts.Settings.ProjectConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
+	return opts.Settings.ProjectConfig.RunScriptArgs(opts.ScriptName, opts.ScriptArgs)
 }
