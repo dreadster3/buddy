@@ -13,9 +13,9 @@ import (
 )
 
 func TestGetAuthor(t *testing.T) {
-	stdBuffer := &bytes.Buffer{}
+	stdOutBuffer := &bytes.Buffer{}
 
-	stdWriter := io.Writer(stdBuffer)
+	stdOutWriter := io.Writer(stdOutBuffer)
 
 	expectedAuthor := "dreadster3"
 
@@ -24,7 +24,7 @@ func TestGetAuthor(t *testing.T) {
 			ProjectConfig: config.NewProjectConfig("buddy-tests", "0.0.1", "Tests for buddy", expectedAuthor, map[string]string{}),
 			Logger:        slog.Default(),
 
-			StdOut: stdWriter,
+			StdOut: stdOutWriter,
 		},
 
 		ParameterName: "author",
@@ -33,13 +33,13 @@ func TestGetAuthor(t *testing.T) {
 	RunGet(opts)
 
 	expected := fmt.Sprintf("%s\n", expectedAuthor)
-	assert.Equal(t, expected, stdBuffer.String())
+	assert.Equal(t, expected, stdOutBuffer.String())
 }
 
 func TestGetScripts(t *testing.T) {
-	stdBuffer := &bytes.Buffer{}
+	stdOutBuffer := &bytes.Buffer{}
 
-	stdWriter := io.Writer(stdBuffer)
+	stdOutWriter := io.Writer(stdOutBuffer)
 
 	expectedAuthor := "dreadster3"
 
@@ -48,7 +48,7 @@ func TestGetScripts(t *testing.T) {
 			ProjectConfig: config.NewProjectConfig("buddy-tests", "0.0.1", "Tests for buddy", expectedAuthor, map[string]string{}),
 			Logger:        slog.Default(),
 
-			StdOut: stdWriter,
+			StdOut: stdOutWriter,
 		},
 
 		ParameterName: "scripts",

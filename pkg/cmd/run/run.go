@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"text/tabwriter"
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/spf13/cobra"
@@ -38,7 +39,7 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 			var scripts []string
 
 			for scriptName := range projectConfig.Scripts {
-				scripts = append(scripts, scriptName)
+				scripts = append(scripts, fmt.Sprintf("%s\t%s", scriptName, projectConfig.Scripts[scriptName]))
 			}
 
 			return scripts, cobra.ShellCompDirectiveNoFileComp
@@ -66,9 +67,11 @@ func RunExecute(opts *RunOptions) error {
 	opts.Settings.Logger.Debug("Executing Script")
 
 	if opts.ListCommands {
+		writer := tabwriter.NewWriter(opts.Settings.StdOut, 0, 0, 1, ' ', 0)
 		for commandName := range opts.Settings.ProjectConfig.Scripts {
-			fmt.Fprintln(opts.Settings.StdOut, commandName, "->", opts.Settings.ProjectConfig.Scripts[commandName])
+			fmt.Fprintln(writer, commandName, "\t->\t", opts.Settings.ProjectConfig.Scripts[commandName])
 		}
+		writer.Flush()
 
 		return nil
 	}
