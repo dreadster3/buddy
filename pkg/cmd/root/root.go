@@ -1,10 +1,14 @@
 package root
 
 import (
+	"os"
+
 	"github.com/dreadster3/buddy/pkg/cmd/get"
 	"github.com/dreadster3/buddy/pkg/cmd/initialize"
 	"github.com/dreadster3/buddy/pkg/cmd/run"
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
+	"github.com/dreadster3/buddy/pkg/config"
+	"github.com/dreadster3/buddy/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -14,9 +18,6 @@ type RootOptions struct {
 	// Args
 	CommandName string
 	CommandArgs []string
-
-	// Flags
-	WorkingDirectory string
 }
 
 func NewRootCmd(settings *settings.Settings) *cobra.Command {
@@ -32,10 +33,35 @@ func NewRootCmd(settings *settings.Settings) *cobra.Command {
 		Short:                 "buddy is a CLI tool to help you automate your development workflow",
 		Version:               settings.Version,
 		Args:                  cobra.MinimumNArgs(1),
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.Settings.Logger = opts.Settings.Logger.With("workingDirectory", opts.WorkingDirectory)
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			subcommands := []string{}
+			commandNames := []string{}
 
-			return nil
+			for _, cmd := range cmd.Root().Commands() {
+				subcommands = append(subcommands, cmd.Name())
+			}
+
+			if opts.Settings.ProjectConfig == nil {
+				return subcommands, cobra.ShellCompDirectiveNoFileComp
+			}
+
+			for commandName := range opts.Settings.ProjectConfig.Scripts {
+				commandNames = append(commandNames, commandName)
+			}
+
+			return utils.SetDifference(commandNames, subcommands), cobra.ShellCompDirectiveNoFileComp
+		},
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			opts.Settings.Logger = opts.Settings.Logger.With("workingDirectory", opts.Settings.WorkingDirectory)
+
+			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
+			if err != nil {
+				projectConfig = config.NewProjectConfig("buddy", opts.Settings.Version, "", opts.Settings.GlobalConfig.Author, opts.Settings.GlobalConfig.Scripts)
+			}
+
+			opts.Settings.ProjectConfig = projectConfig
+
+			return os.Chdir(opts.Settings.WorkingDirectory)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.CommandName = args[0]
@@ -50,7 +76,7 @@ func NewRootCmd(settings *settings.Settings) *cobra.Command {
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&opts.WorkingDirectory, "directory", "d", ".", "The working directory to run the command in")
+	rootCmd.PersistentFlags().StringVarP(&opts.Settings.WorkingDirectory, "directory", "d", ".", "The working directory to run the command in")
 
 	rootCmd.AddCommand(initialize.NewCmdInit(opts.Settings))
 	rootCmd.AddCommand(get.NewCmdGet(opts.Settings))
@@ -65,9 +91,8 @@ func RunRoot(opts *RootOptions) error {
 	runOpts := &run.RunOptions{
 		Settings: opts.Settings,
 
-		CommandName:      opts.CommandName,
-		CommandArgs:      opts.CommandArgs,
-		WorkingDirectory: opts.WorkingDirectory,
+		CommandName: opts.CommandName,
+		CommandArgs: opts.CommandArgs,
 	}
 
 	return run.RunExecute(runOpts)

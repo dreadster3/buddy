@@ -2,10 +2,8 @@ package run
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
-	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +16,7 @@ type RunOptions struct {
 	CommandArgs []string
 
 	// Flags
-	ListCommands     bool
-	WorkingDirectory string
+	ListCommands bool
 }
 
 func NewCmdRun(settings *settings.Settings) *cobra.Command {
@@ -38,12 +35,7 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 				return nil
 			}
 
-			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-			if err != nil {
-				return err
-			}
-
-			if _, ok := projectConfig.Scripts[args[0]]; !ok {
+			if _, ok := opts.Settings.ProjectConfig.Scripts[args[0]]; !ok {
 				return fmt.Errorf("Command %s not found", args[0])
 			}
 
@@ -51,10 +43,7 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 		},
 		Aliases: []string{"execute"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-			if err != nil {
-				return nil, cobra.ShellCompDirectiveError
-			}
+			projectConfig := opts.Settings.ProjectConfig
 
 			var commands []string
 
@@ -63,15 +52,6 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 			}
 
 			return commands, cobra.ShellCompDirectiveNoFileComp
-		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			workingDirectory, err := cmd.Flags().GetString("directory")
-			if err != nil {
-				return err
-			}
-
-			opts.WorkingDirectory = workingDirectory
-			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -94,26 +74,14 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 func RunExecute(opts *RunOptions) error {
 	opts.Settings.Logger.Debug("Executing Command")
 
-	projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-	if err != nil {
-		opts.Settings.Logger.Error("Error parsing project config file", "error", err)
-		return err
-	}
-
 	if opts.ListCommands {
 		opts.Settings.Logger.Info("No command provided, listing all commands")
-		for commandName := range projectConfig.Scripts {
-			fmt.Println(commandName, "->", projectConfig.Scripts[commandName])
+		for commandName := range opts.Settings.ProjectConfig.Scripts {
+			fmt.Println(commandName, "->", opts.Settings.ProjectConfig.Scripts[commandName])
 		}
 
 		return nil
 	}
 
-	err = os.Chdir(opts.WorkingDirectory)
-	if err != nil {
-		opts.Settings.Logger.Error("Error changing directory", "error", err)
-		return err
-	}
-
-	return projectConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
+	return opts.Settings.ProjectConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
 }

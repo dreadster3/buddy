@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
-	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -44,10 +43,7 @@ func NewCmdGet(settings *settings.Settings) *cobra.Command {
 func RunGet(opts *GetOptions) error {
 	opts.Settings.Logger.Debug("Getting field from buddy config")
 
-	projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-	if err != nil {
-		return err
-	}
+	projectConfig := opts.Settings.ProjectConfig
 
 	caser := cases.Title(language.English)
 

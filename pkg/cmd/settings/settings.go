@@ -8,15 +8,18 @@ import (
 )
 
 type Settings struct {
-	Version      string
-	GlobalConfig *config.GlobalConfig
-	Logger       *slog.Logger
+	Version          string
+	GlobalConfig     *config.GlobalConfig
+	ProjectConfig    *config.ProjectConfig
+	Logger           *slog.Logger
+	WorkingDirectory string
 }
 
 func New(version string, globalConfig *config.GlobalConfig) *Settings {
 	return &Settings{
-		Version:      version,
-		GlobalConfig: globalConfig,
-		Logger:       log.Logger,
+		Version:          version,
+		GlobalConfig:     globalConfig,
+		Logger:           log.Logger,
+		WorkingDirectory: ".",
 	}
 }

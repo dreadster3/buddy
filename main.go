@@ -57,6 +57,7 @@ func main() {
 	cmd := root.NewRootCmd(settings.New(Version, globalConfig))
 
 	if err := cmd.Execute(); err != nil {
+		log.Logger.Error("Error executing command", "error", err)
 		os.Exit(1)
 	}
 }
