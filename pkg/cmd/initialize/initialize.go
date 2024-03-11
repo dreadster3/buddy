@@ -64,7 +64,7 @@ func RunInit(opts *InitOptions) error {
 	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", "A new buddy project", opts.Settings.GlobalConfig.Author, map[string]string{})
 
 	opts.Settings.Logger.Debug("Creating buddy file", "projectConfig", projectConfig)
-	err := projectConfig.WriteToFile(path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
+	err := projectConfig.WriteToFile(opts.Settings.GlobalConfig.FileName)
 	if err != nil {
 		return err
 	}
