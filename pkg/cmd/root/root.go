@@ -2,6 +2,7 @@ package root
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/dreadster3/buddy/pkg/cmd/get"
 	"github.com/dreadster3/buddy/pkg/cmd/initialize"
@@ -52,6 +53,12 @@ func NewRootCmd(settings *settings.Settings) *cobra.Command {
 			return utils.SetDifference(commandNames, subcommands), cobra.ShellCompDirectiveNoFileComp
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			absoluteWorkingDir, err := filepath.Abs(opts.Settings.WorkingDirectory)
+			if err != nil {
+				return err
+			}
+
+			opts.Settings.WorkingDirectory = absoluteWorkingDir
 			opts.Settings.Logger = opts.Settings.Logger.With("workingDirectory", opts.Settings.WorkingDirectory)
 
 			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
