@@ -2,10 +2,9 @@ package run
 
 import (
 	"fmt"
-	"os"
+	"text/tabwriter"
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
-	"github.com/dreadster3/buddy/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -14,12 +13,11 @@ type RunOptions struct {
 	Settings *settings.Settings
 
 	// Args
-	CommandName string
-	CommandArgs []string
+	ScriptName string
+	ScriptArgs []string
 
 	// Flags
-	ListCommands     bool
-	WorkingDirectory string
+	ListCommands bool
 }
 
 func NewCmdRun(settings *settings.Settings) *cobra.Command {
@@ -33,53 +31,27 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 		Version:               settings.Version,
 		Short:                 "Run a predefined command",
 		Long:                  `Run a predefined command`,
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 || opts.ListCommands {
-				return nil
-			}
-
-			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-			if err != nil {
-				return err
-			}
-
-			if _, ok := projectConfig.Scripts[args[0]]; !ok {
-				return fmt.Errorf("Command %s not found", args[0])
-			}
-
-			return nil
-		},
-		Aliases: []string{"execute"},
+		Args:                  cobra.ArbitraryArgs,
+		Aliases:               []string{"execute"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-			if err != nil {
-				return nil, cobra.ShellCompDirectiveError
+			projectConfig := opts.Settings.ProjectConfig
+
+			var scripts []string
+
+			for scriptName := range projectConfig.Scripts {
+				scripts = append(scripts, fmt.Sprintf("%s\t%s", scriptName, projectConfig.Scripts[scriptName]))
 			}
 
-			var commands []string
-
-			for commandName := range projectConfig.Scripts {
-				commands = append(commands, commandName)
-			}
-
-			return commands, cobra.ShellCompDirectiveNoFileComp
-		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			workingDirectory, err := cmd.Flags().GetString("directory")
-			if err != nil {
-				return err
-			}
-
-			opts.WorkingDirectory = workingDirectory
-			return nil
+			return scripts, cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				opts.ListCommands = true
+				opts.Settings.Logger.Info("No command provided, listing all commands")
 			} else {
-				opts.CommandName = args[0]
-				opts.CommandArgs = args[1:]
-				opts.Settings.Logger = opts.Settings.Logger.With("command", opts.CommandName, "args", opts.CommandArgs)
+				opts.ScriptName = args[0]
+				opts.ScriptArgs = args[1:]
+				opts.Settings.Logger = opts.Settings.Logger.With("command", opts.ScriptName, "args", opts.ScriptArgs)
 			}
 
 			return RunExecute(opts)
@@ -92,28 +64,17 @@ func NewCmdRun(settings *settings.Settings) *cobra.Command {
 }
 
 func RunExecute(opts *RunOptions) error {
-	opts.Settings.Logger.Debug("Executing Command")
-
-	projectConfig, err := config.ParseMergeProjectConfigFile(opts.Settings.GlobalConfig)
-	if err != nil {
-		opts.Settings.Logger.Error("Error parsing project config file", "error", err)
-		return err
-	}
+	opts.Settings.Logger.Debug("Executing Script")
 
 	if opts.ListCommands {
-		opts.Settings.Logger.Info("No command provided, listing all commands")
-		for commandName := range projectConfig.Scripts {
-			fmt.Println(commandName, "->", projectConfig.Scripts[commandName])
+		writer := tabwriter.NewWriter(opts.Settings.StdOut, 0, 0, 1, ' ', 0)
+		for commandName := range opts.Settings.ProjectConfig.Scripts {
+			fmt.Fprintln(writer, commandName, "\t->\t", opts.Settings.ProjectConfig.Scripts[commandName])
 		}
+		writer.Flush()
 
 		return nil
 	}
 
-	err = os.Chdir(opts.WorkingDirectory)
-	if err != nil {
-		opts.Settings.Logger.Error("Error changing directory", "error", err)
-		return err
-	}
-
-	return projectConfig.RunScriptArgs(opts.CommandName, opts.CommandArgs)
+	return opts.Settings.ProjectConfig.RunScriptArgs(opts.ScriptName, opts.ScriptArgs)
 }

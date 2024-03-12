@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -54,16 +54,14 @@ func ParseMergeProjectConfigFile(globalConfig *GlobalConfig) (*ProjectConfig, er
 		return nil, err
 	}
 
-	projectConfig.MergeGlobalConfig(globalConfig)
-
-	return projectConfig, nil
+	return projectConfig.MergeGlobalConfig(globalConfig), nil
 }
 
 func (projectConfig *ProjectConfig) RunScript(scriptName string) error {
 	return projectConfig.RunScriptArgs(scriptName, []string{})
 }
 
-func (projectConfig *ProjectConfig) MergeGlobalConfig(globalConfig *GlobalConfig) {
+func (projectConfig *ProjectConfig) MergeGlobalConfig(globalConfig *GlobalConfig) *ProjectConfig {
 	authorName := projectConfig.Author
 	mergedScripts := make(map[string]string)
 
@@ -79,14 +77,13 @@ func (projectConfig *ProjectConfig) MergeGlobalConfig(globalConfig *GlobalConfig
 		authorName = globalConfig.Author
 	}
 
-	projectConfig.Author = authorName
-	projectConfig.Scripts = mergedScripts
+	return NewProjectConfig(projectConfig.Name, projectConfig.Version, projectConfig.Description, authorName, mergedScripts)
 }
 
 func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments []string) error {
 	command, ok := projectConfig.Scripts[scriptName]
 	if !ok {
-		return fmt.Errorf("Script %s not found", scriptName)
+		return errors.New("Script not found")
 	}
 
 	_, err := utils.RunScript(command, arguments)

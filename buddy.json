@@ -8,6 +8,7 @@
 		"run": "./dist/buddy --version",
 		"build:run": "./dist/buddy run build && ./dist/buddy run run",
 		"install": "go install .",
-		"ls": "ls -la"
+		"install:completions": "buddy install && buddy completion zsh > $HOME/.oh-my-zsh/custom/buddy.zsh",
+		"test": "go test ./..."
 	}
 }
