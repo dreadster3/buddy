@@ -5,10 +5,13 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/dreadster3/buddy/pkg/config"
+	"github.com/dreadster3/buddy/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,9 +38,21 @@ func TestListAllCommands(t *testing.T) {
 
 	RunExecute(opts)
 
+	// Sort Output for reproducibility
+	output := stdOutBuffer.String()
+	outputLines := strings.Split(output, "\n")
+	outputLines = utils.Filter(outputLines, func(s string) bool {
+		return s != ""
+	})
+	sort.Strings(outputLines)
+
+	// Join the output back
+	outputSorted := strings.Join(outputLines, "\n")
+	outputSorted += "\n"
+
 	expected := "script1  ->  echo 'script1'\nscript2  ->  echo 'script2'\n"
 
-	assert.Equal(t, expected, stdOutBuffer.String())
+	assert.Equal(t, expected, outputSorted)
 }
 
 func TestRunNoArgs(t *testing.T) {
