@@ -31,6 +31,5 @@ jobs:
       - name: Go build
         run: go build
 
-      # To replace build with tests when available
-      # - name: Go test
-      #   run: go test -v
+      - name: Run tests
+        run: go test -v ./...
