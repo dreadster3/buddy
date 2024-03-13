@@ -1,8 +1,7 @@
 {
   description = "Buddy flake";
 
-  # Nixpkgs / NixOS version to use.
-  inputs.nixpkgs.url = "nixpkgs/nixos-23.11";
+  inputs = { nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-23.11"; };
 
   outputs = { self, nixpkgs }:
     let
