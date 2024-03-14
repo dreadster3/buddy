@@ -16,8 +16,9 @@ type InitOptions struct {
 	Settings *settings.Settings
 
 	// Args
-	ProjectName string
-	Description string
+	ProjectName  string
+	Description  string
+	TemplateName string
 }
 
 func NewCmdInit(settings *settings.Settings) *cobra.Command {
@@ -37,7 +38,17 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.Settings.Logger.Debug("Directory provided", "directory", args[0])
-				opts.Settings.WorkingDirectory = path.Join(opts.Settings.WorkingDirectory, args[0])
+
+				directoryPath := path.Join(opts.Settings.WorkingDirectory, args[0])
+				if _, err := os.Stat(directoryPath); os.IsNotExist(err) {
+					opts.Settings.Logger.Debug("Creating directory", "directory", directoryPath)
+					err := os.MkdirAll(directoryPath, 0755)
+					if err != nil {
+						return err
+					}
+				}
+
+				opts.Settings.WorkingDirectory = directoryPath
 			}
 
 			realPath, err := filepath.Abs(opts.Settings.WorkingDirectory)
@@ -47,7 +58,7 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 
 			opts.ProjectName = path.Base(realPath)
 
-			if _, err := os.Stat(opts.Settings.GlobalConfig.FileName); err == nil {
+			if _, err := os.Stat(path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName)); err == nil {
 				opts.Settings.Logger.Error("File already exists", "file", opts.Settings.GlobalConfig.FileName)
 				return errors.New("File already exists")
 			}
@@ -59,21 +70,52 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 	}
 
 	initCmd.Flags().StringVar(&opts.Description, "description", "A new buddy project", "Description of the project")
+	initCmd.Flags().StringVarP(&opts.TemplateName, "template", "t", "", "Template to use for the project")
+
+	initCmd.RegisterFlagCompletionFunc("template", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		entries, err := os.ReadDir(opts.Settings.GlobalConfig.GetTemplatesPath())
+		if err != nil {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		templates := []string{}
+		for _, entry := range entries {
+			if entry.IsDir() {
+				templates = append(templates, entry.Name())
+			}
+		}
+
+		return templates, cobra.ShellCompDirectiveNoFileComp
+	})
 
 	return initCmd
 }
 
 func RunInit(opts *InitOptions) error {
-	projectConfig := config.NewProjectConfig(opts.ProjectName, "0.0.1", opts.Description, opts.Settings.GlobalConfig.Author, map[string]string{})
+	opts.Settings.ProjectConfig = config.NewProjectConfig(opts.ProjectName, "0.0.1", opts.Description, opts.Settings.GlobalConfig.Author, map[string]string{})
 
-	opts.Settings.Logger.Debug("Creating buddy file", "projectConfig", projectConfig)
-	err := projectConfig.WriteToFile(path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
+	opts.Settings.Logger.Debug("Creating buddy file")
+	err := opts.Settings.ProjectConfig.WriteToFile(path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		return err
 	}
 
+	if opts.TemplateName != "" {
+		opts.Settings.Logger.Debug("Initializing template", "template", opts.TemplateName)
+		fmt.Fprintln(opts.Settings.StdOut, "Initializing template", opts.TemplateName)
+
+		templatePath := path.Join(opts.Settings.GlobalConfig.GetTemplatesPath(), opts.TemplateName)
+		template := NewProjectTemplate(templatePath, opts.ProjectName)
+
+		opts.Settings.Logger.Debug("Rendering project template", "template", opts.TemplateName)
+		err = template.RenderProject(opts.Settings)
+		if err != nil {
+			return err
+		}
+	}
+
 	opts.Settings.Logger.Info("Project initialized")
-	fmt.Fprintln(opts.Settings.StdOut, opts.Settings.GlobalConfig.FileName, "created")
+	fmt.Fprintln(opts.Settings.StdOut, "Project initialized successfully!")
 
 	return nil
 }
