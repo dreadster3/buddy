@@ -132,9 +132,7 @@ func TestTemplateInit(t *testing.T) {
 				TemplatesPath: templatesPath,
 				FileName:      "buddy.json",
 			},
-			Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-				Level: slog.LevelDebug,
-			})),
+			Logger:           slog.Default(),
 			WorkingDirectory: filepath.Join(tempFolderPath, "buddy-tests"),
 			StdOut:           stdOutWriter,
 		},
