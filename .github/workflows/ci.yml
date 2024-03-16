@@ -33,3 +33,5 @@ jobs:
 
       - name: Run tests
         run: go test -v ./...
+        env:
+          BUDDY_LOG: "debug"

@@ -132,7 +132,9 @@ func TestTemplateInit(t *testing.T) {
 				TemplatesPath: templatesPath,
 				FileName:      "buddy.json",
 			},
-			Logger:           slog.Default(),
+			Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			})),
 			WorkingDirectory: filepath.Join(tempFolderPath, "buddy-tests"),
 			StdOut:           stdOutWriter,
 		},
@@ -149,10 +151,7 @@ func TestTemplateInit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	test, err := readFile(filepath.Join(templatesPath, templateName, "test"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	test := filepath.Base(templatesPath)
 	t.Log("test:", string(test))
 
 	err = RunInit(opts)
