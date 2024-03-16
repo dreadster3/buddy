@@ -133,9 +133,8 @@ func TestTemplateInit(t *testing.T) {
 				FileName:      "buddy.json",
 			},
 			Logger:           slog.Default(),
-			WorkingDirectory: "buddy-tests",
-
-			StdOut: stdOutWriter,
+			WorkingDirectory: filepath.Join(tempFolderPath, "buddy-tests"),
+			StdOut:           stdOutWriter,
 		},
 
 		ProjectName:  "buddy-tests",
@@ -143,6 +142,7 @@ func TestTemplateInit(t *testing.T) {
 		TemplateName: templateName,
 	}
 
+	t.Logf("Opts: %+v", opts)
 	os.MkdirAll(opts.Settings.WorkingDirectory, 0755)
 
 	err = createTemplateFolder(templatesPath, templateName)
