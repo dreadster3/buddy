@@ -9,6 +9,7 @@ import (
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
 	"github.com/dreadster3/buddy/pkg/config"
+	"github.com/dreadster3/buddy/pkg/template"
 	"github.com/spf13/cobra"
 )
 
@@ -35,6 +36,17 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 	If a directory is provided, buddy.json will be created in the directory.
 	If no directory is provided, buddy.json will be created in the current directory.`,
 		Args: cobra.MaximumNArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if opts.TemplateName != "" {
+				templatesPath := path.Join(opts.Settings.GlobalConfig.GetTemplatesPath(), opts.TemplateName)
+				if _, err := os.Stat(templatesPath); os.IsNotExist(err) {
+					opts.Settings.Logger.Error("Template does not exist", "template", opts.TemplateName)
+					return errors.New("Template does not exist")
+				}
+			}
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.Settings.Logger.Debug("Directory provided", "directory", args[0])
@@ -105,10 +117,10 @@ func RunInit(opts *InitOptions) error {
 		fmt.Fprintln(opts.Settings.StdOut, "Initializing template", opts.TemplateName)
 
 		templatePath := path.Join(opts.Settings.GlobalConfig.GetTemplatesPath(), opts.TemplateName)
-		template := NewProjectTemplate(templatePath, opts.ProjectName)
+		projectData := template.NewProjectTemplateData(opts.Settings)
 
 		opts.Settings.Logger.Debug("Rendering project template", "template", opts.TemplateName)
-		err = template.RenderProject(opts.Settings)
+		err := template.RenderProject(opts.Settings.WorkingDirectory, templatePath, projectData)
 		if err != nil {
 			return err
 		}
