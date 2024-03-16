@@ -153,6 +153,8 @@ func TestTemplateInit(t *testing.T) {
 
 	err = RunInit(opts)
 
+	assert.Nil(t, err)
+
 	file, err := os.Open(filepath.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		t.Fatal(err)
