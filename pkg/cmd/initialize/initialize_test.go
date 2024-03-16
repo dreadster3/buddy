@@ -149,7 +149,11 @@ func TestTemplateInit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log("Config Templates Path:", opts.Settings.GlobalConfig.GetTemplatesPath())
+	test, err := readFile(filepath.Join(templatesPath, templateName, "test"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("test:", string(test))
 
 	err = RunInit(opts)
 	if err != nil {
