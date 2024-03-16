@@ -22,11 +22,12 @@ func main() {
 	// Initialize configurations
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
-	viper.AddConfigPath("$HOME/.config/buddy")
 	viper.AddConfigPath("$XDG_CONFIG_HOME/buddy")
+	viper.AddConfigPath("$HOME/.config/buddy")
 	viper.SetDefault("author", defaultAuthor)
 	viper.SetDefault("filename", "buddy.json")
 	viper.SetDefault("scripts", map[string]string{})
+	viper.SetDefault("templates_path", "templates")
 	viper.ReadInConfig()
 
 	if viper.ConfigFileUsed() == "" {

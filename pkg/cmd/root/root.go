@@ -1,8 +1,6 @@
 package root
 
 import (
-	"os"
-
 	"github.com/dreadster3/buddy/pkg/cmd/get"
 	"github.com/dreadster3/buddy/pkg/cmd/initialize"
 	"github.com/dreadster3/buddy/pkg/cmd/run"
@@ -61,12 +59,6 @@ func NewRootCmd(settings *settings.Settings) *cobra.Command {
 
 			opts.Settings.ProjectConfig = projectConfig
 
-			err = os.Chdir(opts.Settings.WorkingDirectory)
-			if err != nil {
-				return err
-			}
-
-			opts.Settings.WorkingDirectory = "."
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {

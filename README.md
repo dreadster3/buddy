@@ -83,3 +83,17 @@ You can get the value of an attribute from the `buddy.json` file using the `budd
 ```bash
 buddy get <attribute-name>
 ```
+
+## Personal Project Templates
+
+You can create your own project templates to initialize a new project with buddy.
+This can be achieved by creating a new folder under the `$HOME/.config/buddy/templates`(default path) directory.
+The name of the directory will represent the name of the template.
+
+![template_folder_structure](./docs/structure.png)
+
+You can use project templates to initialize a new project with buddy.
+
+```bash
+buddy init --template <template-name> <project-name>
+```
