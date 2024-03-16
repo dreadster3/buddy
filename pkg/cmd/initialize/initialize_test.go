@@ -77,7 +77,7 @@ func TestInit(t *testing.T) {
 				FileName: "buddy.json",
 			},
 			Logger:           slog.Default(),
-			WorkingDirectory: ".",
+			WorkingDirectory: "buddy-tests",
 
 			StdOut: stdOutWriter,
 		},
@@ -86,12 +86,14 @@ func TestInit(t *testing.T) {
 		Description: "Description",
 	}
 
+	os.MkdirAll(opts.Settings.WorkingDirectory, 0755)
+
 	err = RunInit(opts)
 
 	assert.Nil(t, err)
 	assert.Contains(t, "Project initialized successfully!\n", stdOutBuffer.String())
 
-	fileContent, err := readFile(opts.Settings.GlobalConfig.FileName)
+	fileContent, err := readFile(filepath.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 
 	var fileInterface map[string]interface{}
 
@@ -131,7 +133,7 @@ func TestTemplateInit(t *testing.T) {
 				FileName:      "buddy.json",
 			},
 			Logger:           slog.Default(),
-			WorkingDirectory: ".",
+			WorkingDirectory: "buddy-tests",
 
 			StdOut: stdOutWriter,
 		},
@@ -141,6 +143,8 @@ func TestTemplateInit(t *testing.T) {
 		TemplateName: templateName,
 	}
 
+	os.MkdirAll(opts.Settings.WorkingDirectory, 0755)
+
 	err = createTemplateFolder(templatesPath, templateName)
 	if err != nil {
 		t.Fatal(err)
@@ -148,7 +152,7 @@ func TestTemplateInit(t *testing.T) {
 
 	err = RunInit(opts)
 
-	file, err := os.Open(opts.Settings.GlobalConfig.FileName)
+	file, err := os.Open(filepath.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +172,7 @@ func TestTemplateInit(t *testing.T) {
 	assert.Equal(t, "dreadster3", fileInterface["author"])
 	assert.Equal(t, "0.0.1", fileInterface["version"])
 
-	renderedFile, err := readFile("test")
+	renderedFile, err := readFile(filepath.Join(opts.Settings.WorkingDirectory, "test"))
 
 	assert.Nil(t, err)
 	assert.Equal(t, "buddy-tests", string(renderedFile))
