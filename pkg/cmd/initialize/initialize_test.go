@@ -151,9 +151,6 @@ func TestTemplateInit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	test := filepath.Base(templatesPath)
-	t.Log("test:", string(test))
-
 	err = RunInit(opts)
 	if err != nil {
 		t.Fatal(err)

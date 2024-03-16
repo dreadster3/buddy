@@ -13,6 +13,7 @@ import (
 
 func RenderTemplate(writer io.Writer, templatePath string, data any) error {
 	templateName := path.Base(templatePath)
+	log.Logger.Debug("Rendering template", "template", templateName, "path", templatePath, "data", data)
 	tmpl, err := template.New(templateName).ParseFiles(templatePath)
 	if err != nil {
 		return err
