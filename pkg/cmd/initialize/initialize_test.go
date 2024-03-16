@@ -152,16 +152,14 @@ func TestTemplateInit(t *testing.T) {
 	t.Log("Config Templates Path:", opts.Settings.GlobalConfig.GetTemplatesPath())
 
 	err = RunInit(opts)
-
-	assert.Nil(t, err)
-
-	file, err := os.Open(filepath.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
 
-	fileContent, err := io.ReadAll(file)
+	fileContent, err := readFile(filepath.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var fileInterface map[string]interface{}
 	err = json.Unmarshal(fileContent, &fileInterface)
@@ -169,7 +167,6 @@ func TestTemplateInit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Nil(t, err)
 	assert.Equal(t, "buddy-tests", fileInterface["name"])
 	assert.Equal(t, "Description", fileInterface["description"])
 	assert.Equal(t, "dreadster3", fileInterface["author"])
