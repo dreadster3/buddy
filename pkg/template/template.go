@@ -37,7 +37,7 @@ func RenderProject(workingDirectory string, projectTemplatePath string, data *Pr
 
 		if d.IsDir() {
 			logger.Debug("Found directory, creating directory")
-			err := os.MkdirAll(path.Join(workingDirectory, relativePath), 0755)
+			err := os.MkdirAll(filepath.Join(workingDirectory, relativePath), 0755)
 			if err != nil && !os.IsExist(err) {
 				return err
 			}
@@ -46,7 +46,7 @@ func RenderProject(workingDirectory string, projectTemplatePath string, data *Pr
 		}
 
 		logger.Debug("Rendering file")
-		filePath := path.Join(workingDirectory, relativePath)
+		filePath := filepath.Join(workingDirectory, relativePath)
 		file, err := os.Create(filePath)
 		if err != nil {
 			return err
@@ -58,7 +58,7 @@ func RenderProject(workingDirectory string, projectTemplatePath string, data *Pr
 			return err
 		}
 
-		data.DirectoryName = path.Base(path.Dir(absolutePath))
+		data.DirectoryName = filepath.Base(filepath.Dir(absolutePath))
 		return RenderTemplate(file, objectPath, data)
 	})
 
