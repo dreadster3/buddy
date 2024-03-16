@@ -12,12 +12,13 @@ import (
 )
 
 func RenderTemplate(writer io.Writer, templatePath string, data any) error {
-	tmpl, err := template.New(path.Base(templatePath)).ParseFiles(templatePath)
+	templateName := path.Base(templatePath)
+	tmpl, err := template.New(templateName).ParseFiles(templatePath)
 	if err != nil {
 		return err
 	}
 
-	return tmpl.Execute(writer, data)
+	return tmpl.ExecuteTemplate(writer, templateName, data)
 }
 
 func RenderProject(workingDirectory string, projectTemplatePath string, data *ProjectTemplateData) error {
