@@ -113,12 +113,15 @@ func TestTemplateInit(t *testing.T) {
 	}
 	defer os.RemoveAll(tempFolderPath)
 
+	t.Logf("tempFolderPath: %s", tempFolderPath)
+
 	templateName := "test-template"
 
 	stdOutBuffer := &bytes.Buffer{}
 	stdOutWriter := io.Writer(stdOutBuffer)
 
 	templatesPath, err := filepath.Abs(filepath.Join(tempFolderPath, "templates"))
+	t.Logf("templatesPath: %s", templatesPath)
 
 	opts := &InitOptions{
 		Settings: &settings.Settings{
