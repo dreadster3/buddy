@@ -142,13 +142,14 @@ func TestTemplateInit(t *testing.T) {
 		TemplateName: templateName,
 	}
 
-	t.Logf("Opts: %+v", opts)
 	os.MkdirAll(opts.Settings.WorkingDirectory, 0755)
 
 	err = createTemplateFolder(templatesPath, templateName)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	t.Log("Config Templates Path:", opts.Settings.GlobalConfig.GetTemplatesPath())
 
 	err = RunInit(opts)
 

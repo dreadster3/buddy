@@ -106,7 +106,7 @@ func NewCmdInit(settings *settings.Settings) *cobra.Command {
 func RunInit(opts *InitOptions) error {
 	opts.Settings.ProjectConfig = config.NewProjectConfig(opts.ProjectName, "0.0.1", opts.Description, opts.Settings.GlobalConfig.Author, map[string]string{})
 
-	opts.Settings.Logger.Debug("Creating buddy file")
+	opts.Settings.Logger.Debug("Creating buddy file", "file", opts.Settings.GlobalConfig.FileName)
 	err := opts.Settings.ProjectConfig.WriteToFile(path.Join(opts.Settings.WorkingDirectory, opts.Settings.GlobalConfig.FileName))
 	if err != nil {
 		return err
