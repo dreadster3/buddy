@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/dreadster3/buddy/pkg/cmd/settings"
@@ -13,17 +14,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInit(t *testing.T) {
+func createTempFolder() (string, error) {
 	path, err := os.MkdirTemp("", "")
+	if err != nil {
+		return "", err
+	}
+
+	err = os.Chdir(path)
+	if err != nil {
+		return "", err
+	}
+
+	return path, nil
+}
+
+func createTemplateFolder(templatePath string, templateName string) error {
+	_ = os.MkdirAll(filepath.Join(templatePath, templateName), 0755)
+
+	file, err := os.Create(filepath.Join(templatePath, templateName, "test"))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString("{{.ProjectConfig.Name}}")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func readFile(filePath string) ([]byte, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	fileContent, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileContent, nil
+}
+
+func TestInit(t *testing.T) {
+	path, err := createTempFolder()
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(path)
-
-	err = os.Chdir(path)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	stdOutBuffer := &bytes.Buffer{}
 	stdOutWriter := io.Writer(stdOutBuffer)
@@ -47,7 +89,61 @@ func TestInit(t *testing.T) {
 	err = RunInit(opts)
 
 	assert.Nil(t, err)
-	assert.Contains(t, "buddy.json created\n", stdOutBuffer.String())
+	assert.Contains(t, "Project initialized successfully!\n", stdOutBuffer.String())
+
+	fileContent, err := readFile(opts.Settings.GlobalConfig.FileName)
+
+	var fileInterface map[string]interface{}
+
+	err = json.Unmarshal(fileContent, &fileInterface)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, "buddy-tests", fileInterface["name"])
+	assert.Equal(t, "Description", fileInterface["description"])
+	assert.Equal(t, "dreadster3", fileInterface["author"])
+	assert.Equal(t, "0.0.1", fileInterface["version"])
+}
+
+func TestTemplateInit(t *testing.T) {
+	tempFolderPath, err := createTempFolder()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempFolderPath)
+
+	templateName := "test-template"
+
+	stdOutBuffer := &bytes.Buffer{}
+	stdOutWriter := io.Writer(stdOutBuffer)
+
+	templatesPath, err := filepath.Abs(filepath.Join(tempFolderPath, "templates"))
+
+	opts := &InitOptions{
+		Settings: &settings.Settings{
+			GlobalConfig: &config.GlobalConfig{
+				Author:        "dreadster3",
+				TemplatesPath: templatesPath,
+				FileName:      "buddy.json",
+			},
+			Logger:           slog.Default(),
+			WorkingDirectory: ".",
+
+			StdOut: stdOutWriter,
+		},
+
+		ProjectName:  "buddy-tests",
+		Description:  "Description",
+		TemplateName: templateName,
+	}
+
+	err = createTemplateFolder(templatesPath, templateName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = RunInit(opts)
 
 	file, err := os.Open(opts.Settings.GlobalConfig.FileName)
 	if err != nil {
@@ -58,13 +154,19 @@ func TestInit(t *testing.T) {
 	fileContent, err := io.ReadAll(file)
 
 	var fileInterface map[string]interface{}
-
 	err = json.Unmarshal(fileContent, &fileInterface)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	assert.Nil(t, err)
 	assert.Equal(t, "buddy-tests", fileInterface["name"])
 	assert.Equal(t, "Description", fileInterface["description"])
 	assert.Equal(t, "dreadster3", fileInterface["author"])
 	assert.Equal(t, "0.0.1", fileInterface["version"])
+
+	renderedFile, err := readFile("test")
+
+	assert.Nil(t, err)
+	assert.Equal(t, "buddy-tests", string(renderedFile))
 }
