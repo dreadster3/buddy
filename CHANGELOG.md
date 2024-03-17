@@ -6,6 +6,17 @@ This project uses [_towncrier_](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [[v0.0.2-beta.1]](https://github.com/dreadster3/buddy/tree/v0.0.2-beta.1) - 2024-03-17
+
+### Feature
+
+- [[#32](https://github.com/dreadster3/buddy/pull/32)] Allow creating custom templates for initializing a new project with buddy.
+
+### Miscellaneous
+
+- [[#31](https://github.com/dreadster3/buddy/pull/31)] Add flake to make it easier to install for NixOS users
+
+
 ## [[v0.0.1]](https://github.com/dreadster3/buddy/tree/v0.0.1) - 2024-03-12
 
 ### Feature
