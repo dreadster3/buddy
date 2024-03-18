@@ -22,15 +22,21 @@ func main() {
 	// Initialize configurations
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
-	viper.AddConfigPath("$XDG_CONFIG_HOME/buddy")
 	viper.AddConfigPath("$HOME/.config/buddy")
+	viper.AddConfigPath("$XDG_CONFIG_HOME/buddy")
+	viper.AddConfigPath("$BUDDY_CONFIG_DIR")
 	viper.SetDefault("author", defaultAuthor)
 	viper.SetDefault("filename", "buddy.json")
 	viper.SetDefault("scripts", map[string]string{})
 	viper.SetDefault("templates_path", "templates")
-	viper.ReadInConfig()
 
-	if viper.ConfigFileUsed() == "" {
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Logger.Error("Error reading config file", "error", err)
+			fmt.Println("Error reading config file:", err)
+			os.Exit(1)
+		}
+
 		configDir := os.ExpandEnv("$HOME/.config/buddy")
 
 		log.Logger.Info("No config file found, creating one", "path", configDir)
