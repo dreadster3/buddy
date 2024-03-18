@@ -24,7 +24,7 @@
       packages = forAllSystems (system:
         let pkgs = nixpkgsFor.${system};
         in {
-          buddy = pkgs.buildGoModule {
+          default = pkgs.buildGoModule {
             pname = "buddy";
             inherit version;
 
@@ -36,8 +36,6 @@
 
             vendorHash = "sha256-9ZuzJEBi6DegS6kYzgiY7ZRnMUO7lZ+Ze/V7hZQJ3So=";
           };
-
-          default = self.packages.${system}.buddy;
         });
 
       # Add dependencies that are only needed for development
