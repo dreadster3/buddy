@@ -36,6 +36,8 @@
 
             vendorHash = "sha256-9ZuzJEBi6DegS6kYzgiY7ZRnMUO7lZ+Ze/V7hZQJ3So=";
           };
+
+          default = self.packages.${system}.buddy;
         });
 
       # Add dependencies that are only needed for development
@@ -46,10 +48,5 @@
             buildInputs = with pkgs; [ go gopls gotools go-tools ];
           };
         });
-
-      # The default package for 'nix build'. This makes sense if the
-      # flake provides only one package or there is a clear "main"
-      # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.buddy);
     };
 }
