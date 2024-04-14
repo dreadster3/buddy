@@ -81,7 +81,7 @@ func TestRunNoArgs(t *testing.T) {
 	w.Close()
 	actual, _ := io.ReadAll(r)
 
-	expected := "script1\n"
+	expected := "script1\r\n"
 
 	assert.Equal(t, expected, string(actual))
 }
@@ -112,7 +112,7 @@ func TestRunArgs(t *testing.T) {
 	w.Close()
 	actual, _ := io.ReadAll(r)
 
-	expected := "hello world\n"
+	expected := "hello world\r\n"
 
 	assert.Equal(t, expected, string(actual))
 }

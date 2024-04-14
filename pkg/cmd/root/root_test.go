@@ -39,7 +39,7 @@ func TestRunRootNoArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	actual, _ := io.ReadAll(r)
-	expected := "hello world\n"
+	expected := "hello world\r\n"
 
 	assert.Equal(t, expected, string(actual))
 }
@@ -72,7 +72,7 @@ func TestRunRootArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	actual, _ := io.ReadAll(r)
-	expected := "Hello World\n"
+	expected := "Hello World\r\n"
 
 	assert.Equal(t, expected, string(actual))
 }

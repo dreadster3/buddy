@@ -15,7 +15,11 @@ import (
 func RunScript(script string, arguments []string) (string, error) {
 	log.Logger.Info("Running script", "script", script, "arguments", arguments)
 
-	toRun := fmt.Sprintf("%s %#v", script, strings.Join(arguments, " "))
+	toRun := script
+	if len(arguments) > 0 {
+		toRun = fmt.Sprintf("%s %#v", script, strings.Join(arguments, " "))
+	}
+
 	command := exec.Command("bash", "-c", toRun)
 	f, err := pty.Start(command)
 	if err != nil {
