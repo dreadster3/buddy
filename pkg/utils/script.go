@@ -1,31 +1,28 @@
 package utils
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
+
+	"os/exec"
+
+	"github.com/creack/pty"
+	"github.com/dreadster3/buddy/pkg/log"
 )
 
 func RunScript(script string, arguments []string) (string, error) {
-	var stdOutBuffer, stdErrBuffer bytes.Buffer
+	log.Logger.Info("Running script", "script", script, "arguments", arguments)
 
-	stdOutWriter := io.MultiWriter(os.Stdout, &stdOutBuffer)
-	stdErrWriter := io.MultiWriter(os.Stderr, &stdErrBuffer)
-
-	script = fmt.Sprintf("%s %s", script, strings.Join(arguments, " "))
-
-	execCommand := exec.Command("sh", "-c", script)
-	execCommand.Stdout = stdOutWriter
-	execCommand.Stderr = stdErrWriter
-
-	err := execCommand.Run()
+	toRun := fmt.Sprintf("%s %#v", script, strings.Join(arguments, " "))
+	command := exec.Command("bash", "-c", toRun)
+	f, err := pty.Start(command)
 	if err != nil {
-		return "", errors.New(stdErrBuffer.String())
+		return "", err
 	}
 
-	return stdOutBuffer.String(), nil
+	io.Copy(os.Stdout, f)
+
+	return string(""), nil
 }
