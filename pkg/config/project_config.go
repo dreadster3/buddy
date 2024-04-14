@@ -85,8 +85,7 @@ func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments [
 		return errors.New("Script not found")
 	}
 
-	_, err := utils.RunScript(command, arguments)
-
+	_, _, err := utils.RunScript(command, arguments)
 	return err
 }
 
