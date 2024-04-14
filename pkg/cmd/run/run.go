@@ -76,5 +76,10 @@ func RunExecute(opts *RunOptions) error {
 		return nil
 	}
 
-	return opts.Settings.ProjectConfig.RunScriptArgs(opts.ScriptName, opts.ScriptArgs)
+	err := opts.Settings.ProjectConfig.RunScriptArgs(opts.ScriptName, opts.ScriptArgs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

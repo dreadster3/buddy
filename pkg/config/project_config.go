@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/dreadster3/buddy/pkg/utils"
+	"github.com/dreadster3/buddy/pkg/utils/script"
 )
 
 type ProjectConfig struct {
@@ -85,8 +86,7 @@ func (projectConfig *ProjectConfig) RunScriptArgs(scriptName string, arguments [
 		return errors.New("Script not found")
 	}
 
-	_, err := utils.RunScript(command, arguments)
-
+	_, _, err := script.RunScript(command, arguments)
 	return err
 }
 

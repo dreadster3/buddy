@@ -17,7 +17,7 @@ type Settings struct {
 	WorkingDirectory string
 
 	StdOut io.Writer
-	ErrOut io.Writer
+	StdErr io.Writer
 }
 
 func New(version string, globalConfig *config.GlobalConfig) *Settings {
@@ -28,6 +28,6 @@ func New(version string, globalConfig *config.GlobalConfig) *Settings {
 		WorkingDirectory: ".",
 
 		StdOut: os.Stdout,
-		ErrOut: os.Stderr,
+		StdErr: os.Stderr,
 	}
 }
