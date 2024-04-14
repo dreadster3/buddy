@@ -19,7 +19,7 @@ func TestRunRootNoArgs(t *testing.T) {
 		Settings: &settings.Settings{
 			ProjectConfig: &config.ProjectConfig{
 				Scripts: map[string]string{
-					"script1": "echo 'hello world'",
+					"script1": "echo -n 'hello world'",
 				},
 			},
 
@@ -39,7 +39,7 @@ func TestRunRootNoArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	actual, _ := io.ReadAll(r)
-	expected := "hello world\r\n"
+	expected := "hello world"
 
 	assert.Equal(t, expected, string(actual))
 }
@@ -52,7 +52,7 @@ func TestRunRootArgs(t *testing.T) {
 		Settings: &settings.Settings{
 			ProjectConfig: &config.ProjectConfig{
 				Scripts: map[string]string{
-					"script1": "echo",
+					"script1": "echo -n",
 				},
 			},
 
@@ -72,7 +72,7 @@ func TestRunRootArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	actual, _ := io.ReadAll(r)
-	expected := "Hello World\r\n"
+	expected := "Hello World"
 
 	assert.Equal(t, expected, string(actual))
 }

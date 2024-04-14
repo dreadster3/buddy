@@ -24,8 +24,8 @@ func TestListAllCommands(t *testing.T) {
 		Settings: &settings.Settings{
 			ProjectConfig: &config.ProjectConfig{
 				Scripts: map[string]string{
-					"script1": "echo 'script1'",
-					"script2": "echo 'script2'",
+					"script1": "echo -n 'script1'",
+					"script2": "echo -n 'script2'",
 				},
 			},
 
@@ -50,7 +50,7 @@ func TestListAllCommands(t *testing.T) {
 	outputSorted := strings.Join(outputLines, "\n")
 	outputSorted += "\n"
 
-	expected := "script1  ->  echo 'script1'\nscript2  ->  echo 'script2'\n"
+	expected := "script1  ->  echo -n 'script1'\nscript2  ->  echo -n 'script2'\n"
 
 	assert.Equal(t, expected, outputSorted)
 }
@@ -63,7 +63,7 @@ func TestRunNoArgs(t *testing.T) {
 		Settings: &settings.Settings{
 			ProjectConfig: &config.ProjectConfig{
 				Scripts: map[string]string{
-					"script1": "echo 'script1'",
+					"script1": "echo -n 'script1'",
 				},
 			},
 
@@ -81,7 +81,7 @@ func TestRunNoArgs(t *testing.T) {
 	w.Close()
 	actual, _ := io.ReadAll(r)
 
-	expected := "script1\r\n"
+	expected := "script1"
 
 	assert.Equal(t, expected, string(actual))
 }
@@ -94,7 +94,7 @@ func TestRunArgs(t *testing.T) {
 		Settings: &settings.Settings{
 			ProjectConfig: &config.ProjectConfig{
 				Scripts: map[string]string{
-					"script1": "echo",
+					"script1": "echo -n",
 				},
 			},
 
@@ -112,7 +112,7 @@ func TestRunArgs(t *testing.T) {
 	w.Close()
 	actual, _ := io.ReadAll(r)
 
-	expected := "hello world\r\n"
+	expected := "hello world"
 
 	assert.Equal(t, expected, string(actual))
 }
